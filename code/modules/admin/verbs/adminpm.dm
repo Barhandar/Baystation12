@@ -54,17 +54,17 @@
 			else		adminhelp(msg)	//admin we are replying to has vanished, adminhelp instead
 			return
 
-	// sanitize it anyway		
+	// sanitize it anyway
 	msg = sanitize(msg)
-	
+
 	//clean the message if it's not sent by a GA or GM
-	if( !holder || !(holder.rank in list("Game Admin", "Game Master")) )
+	if( !holder || holder.level <= 1 )
 		msg = copytext(msg,1,MAX_MESSAGE_LEN)
 		if(!msg)	return
 
 	if(C.holder)
 		if(holder)	//both are admins
-			if(holder.rank == "Moderator") //If moderator
+			if(holder.level == 0) //If moderator
 				C << "<font color='maroon'>Mod PM from-<b>[key_name(src, C, 1)]</b>: [msg]</font>"
 				src << "<font color='blue'>Mod PM to-<b>[key_name(C, src, 1)]</b>: [msg]</font>"
 			else
@@ -82,7 +82,7 @@
 	else
 		if(holder)	//sender is an admin but recipient is not. Do BIG RED TEXT
 //			C << "<font color='red' size='4'><b>-- Administrator private message --</b></font>"
-			if(holder.rank == "Moderator")
+			if(holder.level == 0)
 				C << "<font color='maroon'>Mod PM from-<b>[key_name(src, C, 0)]</b>: [msg]</font>"
 				C << "<font color='maroon'><i>Click on the moderators's name to reply.</i></font>"
 				src << "<font color='blue'>Mod PM to-<b>[key_name(C, src, 1)]</b>: [msg]</font>"

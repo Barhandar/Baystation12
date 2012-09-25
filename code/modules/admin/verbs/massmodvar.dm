@@ -29,7 +29,7 @@
 		return
 
 	for(var/p in forbidden_varedit_object_types)
-		if( istype(O,p) )
+		if(istype(O,p) && src.holder.level <= 5) //SPIDERMAN DOES ALL WHAT HE WANTS
 			usr << "\red It is forbidden to edit this object's variables."
 			return
 
@@ -52,10 +52,10 @@
 	var/var_value = O.vars[variable]
 	var/dir
 
-	if (locked.Find(variable) && !(src.holder.rank in list("Game Master", "Game Admin")))
+	if (locked.Find(variable) && holder.level <= 1)
 		return
 
-	if (variable == "holder" && holder.rank != "Game Master") //Hotfix, a bit ugly but that exploit has been there for ages and now somebody just had to go and tell everyone of it bluh bluh - U
+	if (variable == "holder" && holder.level <= 5) //Hotfix, a bit ugly but that exploit has been there for ages and now somebody just had to go and tell everyone of it bluh bluh - U
 		return
 
 	if(isnull(var_value))

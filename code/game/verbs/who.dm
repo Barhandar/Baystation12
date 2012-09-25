@@ -9,12 +9,10 @@
 	for (var/mob/M in world)
 		if (!M.client)
 			continue
-
-		if (M.client.stealth && !usr.client.holder)
+		if ((M.client.holder.stealth || M.client.holder.mimic) && !usr.client.holder)
 			peeps += "\t[M.client.fakekey]"
 		else
-			peeps += "\t[M.client][M.client.stealth ? " <i>(as [M.client.fakekey])</i>" : ""]"
-
+			peeps += "\t[M.client][(M.client.holder.stealth || M.client.holder.mimic) ? " <i>(as [M.client.fakekey])</i>" : ""][M.client.holder.scarecrow ? " (Scarecrow'd)" : ""]"
 	peeps = sortList(peeps)
 
 	for (var/p in peeps)
@@ -30,19 +28,18 @@
 
 	for (var/mob/M in world)
 		if(M && M.client && M.client.holder)
-			if(usr.client.holder  && (usr.client.holder.level != 0))
+			if(usr.client.holder && usr.client.holder.level >= -1)
 				var/afk = 0
 				if( M.client.inactivity > 3000 ) //3000 deciseconds = 300 seconds = 5 minutes
 					afk = 1
 				if(isobserver(M))
-					usr << "[M.key] is a [M.client.holder.rank][M.client.stealth ? " <i>(as [M.client.fakekey])</i>" : ""] - Observing [afk ? "(AFK)" : ""]"
+					usr << "[M.key][(M.client.holder.stealth || M.client.holder.mimic) ? " <i>(as [M.client.fakekey])</i>" : ""] is a [M.client.holder.fakerank ? "[M.client.holder.rank]/<i>[M.client.holder.fakerank]</i>" : M.client.holder.rank] - Observing [afk ? "(AFK)" : ""] [M.client.holder.scarecrow ? "(Scarecrow'd)" : ""]"
 				else if(istype(M,/mob/new_player))
-					usr << "[M.key] is a [M.client.holder.rank][M.client.stealth ? " <i>(as [M.client.fakekey])</i>" : ""] - Has not entered [afk ? "(AFK)" : ""]"
+					usr << "[M.key][(M.client.holder.stealth || M.client.holder.mimic) ? " <i>(as [M.client.fakekey])</i>" : ""] is a [M.client.holder.fakerank ? "[M.client.holder.rank]/<i>[M.client.holder.fakerank]</i>" : M.client.holder.rank] - Has not entered [afk ? "(AFK)" : ""][M.client.holder.scarecrow ? "(Scarecrow'd)" : ""]"
 				else if(istype(M,/mob/living))
-					usr << "[M.key] is a [M.client.holder.rank][M.client.stealth ? " <i>(as [M.client.fakekey])</i>" : ""] - Playing [afk ? "(AFK)" : ""]"
-			else if(!M.client.stealth && (M.client.holder.level != -3))
-				usr << "\t[pick(nobles)] [M.client] is a [M.client.holder.rank]"
-
+					usr << "[M.key][(M.client.holder.stealth || M.client.holder.mimic) ? " <i>(as [M.client.fakekey])</i>" : ""] is a [M.client.holder.fakerank ? "[M.client.holder.rank]/<i>[M.client.holder.fakerank]</i>" : M.client.holder.rank] - Playing [afk ? "(AFK)" : ""][M.client.holder.scarecrow ? "(Scarecrow'd)" : ""]"
+			else if(!M.client.holder.stealth && !M.client.holder.scarecrow)
+				usr << "\t[pick(nobles)] [M.client.holder.mimic ? M.client.fakekey : M.client] is a [M.client.holder.fakerank ? M.client.holder.fakerank : M.client.holder.rank]"
 var/list/nobles = list("Baron","Bookkeeper","Captain of the Guard","Chief Medical Dwarf","Count","Dungeon Master","Duke","General","Mayor","Outpost Liaison","Sheriff","Champion")
 
 /client/verb/active_players()

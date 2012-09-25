@@ -30,7 +30,7 @@ In my current plan for it, 'solid' will be defined as anything with density == 1
 		if (istype(clong, /mob))
 			if(clong.density || prob(10))
 				clong.meteorhit(src)
-		if(clong && prob(25))
+		if(clong) //this is fucking IMMOVABLE ROD, bitch
 			src.loc = clong.loc
 		else del(src)
 

@@ -17,13 +17,12 @@
 //			verbs += /client/proc/Cell //More air things
 
 /client/proc/update_admins(var/rank)
-
 	if(!holder)
-		holder = new /obj/admins(src)
+		holder = new /datum/admins(src)
 
 	holder.rank = rank
 
-	if(!holder.state)
+/*	if(!holder.state)
 		var/state = alert("Which state do you want the admin to begin in?", "Admin-state", "Play", "Observe", "Neither")
 		if(state == "Play")
 			holder.state = 1
@@ -36,453 +35,76 @@
 		else
 			del(holder)
 			return
-
+*/
+		//debug - 4, admin - 3 (SHOULD BE 2 REALLY), moder - 0, observer - -1, banned - -2
 	switch (rank)
-		if ("Game Master")
+		if ("Monarch", "God", "Tzar")
+			holder.level = 9
+			holder.seeprayers = 1
+		if ("The Singularity", "Spiderman", "Batman", "Misanthrope", "The Legend")
 			holder.level = 6
-
-		if ("Game Admin")
+			holder.seeprayers = 1
+		if ("Game Master", "Tyrant", "Coder")
 			holder.level = 5
-
-		if ("Badmin")
-			holder.level = 4
-
-		if ("Trial Admin")
+			holder.seeprayers = 1 //ALWAYS get all of the verbs + debug.
+		if ("Admin", "General")
 			holder.level = 3
-			if(holder.state == 2) // if observing
-				verbs += /client/proc/debug_variables
-				verbs += /client/proc/cmd_modify_ticker_variables
-				verbs += /client/proc/toggle_view_range
-				verbs += /client/proc/Getmob
-				verbs += /client/proc/Getkey
-				verbs += /client/proc/sendmob
-				verbs += /client/proc/Jump
-				verbs += /client/proc/jumptokey
-				verbs += /client/proc/jumptomob
-				verbs += /client/proc/jumptoturf
-				verbs += /client/proc/jumptocoord
-				verbs += /client/proc/cmd_admin_delete
-				verbs += /client/proc/cmd_admin_add_freeform_ai_law
-				verbs += /client/proc/cmd_admin_rejuvenate
-				//verbs += /client/proc/cmd_admin_drop_everything		--Merged with view variables
-				//verbs += /client/proc/cmd_modify_object_variables 	--Merged with view variables
-
-		if ("Admin Candidate")
-			holder.level = 2
-			if(holder.state == 2) // if observing
-				deadchat = 1
-				verbs += /obj/admins/proc/toggleaban					//abandon mob
-				verbs += /client/proc/deadchat							//toggles deadchat
-				verbs += /client/proc/cmd_admin_check_contents
-				verbs += /client/proc/Jump
-				verbs += /client/proc/jumptokey
-				verbs += /client/proc/jumptomob
-				//verbs += /client/proc/cmd_admin_attack_log			--Merged with view variables
-
-		if ("Temporary Admin")
-			holder.level = 1
-
-		if ("Moderator")
+		if ("Moderator", "Commandant", "Comandante")
 			holder.level = 0
-
-		if ("Admin Observer")
+		if ("Observer", "Watcher")
 			holder.level = -1
-
 		if ("Banned")
 			holder.level = -2
 			del(src)
-			return
-
-		if ("Retired Admin")
-			holder.level = -3
-
+			return;
 		else
-			del(holder)
-			return
-
+			del(src)
+			return;
 	if (holder)		//THE BELOW handles granting powers. The above is for special cases only!
 		holder.owner = src
 
-		//Admin Observer
-		if (holder.level >= -1)
-			verbs += /client/proc/investigate_show
-			verbs += /client/proc/cmd_admin_say
-			verbs += /client/proc/cmd_mod_say
-			verbs += /client/proc/cmd_admin_gib_self
-			verbs += /client/proc/update_mob_sprite
-			verbs += /client/proc/deadmin_self
-		else if (holder.level == -3) // Retired Admin
-			verbs += /client/proc/cmd_admin_say
-			verbs += /client/proc/cmd_mod_say
-			return
-		else	return
+		for(var/V in all_admin_verbs)
+			if(all_admin_verbs[V] <= holder.level)
+				verbs += text2path(V)
+		holder.deadchat = 1
 
-		//Moderator
-		if (holder.level >= 0)
-			verbs += /client/proc/cmd_admin_pm_context
-			verbs += /client/proc/cmd_admin_pm_panel
-			verbs += /client/proc/admin_play
-			verbs += /client/proc/admin_observe
-			verbs += /client/proc/hide_verbs
-			verbs += /client/proc/deadmin_self
-			verbs += /client/proc/Report
-			verbs += /client/proc/display_admin_reports
-			verbs += /obj/admins/proc/show_skills
-		else	return
-
-		if(holder.level == 0) //Moderators don't get asay, only msay
-			verbs -= /client/proc/cmd_admin_say
-			verbs -= /client/proc/investigate_show
-			verbs -= /client/proc/cmd_admin_gib_self
-			verbs += /client/proc/mod_panel
-
-		//Temporary Admin
-		if (holder.level >= 1)
-			verbs += /obj/admins/proc/delay								//game start delay
-			verbs += /obj/admins/proc/immreboot							//immediate reboot
-			verbs += /obj/admins/proc/restart							//restart
-			verbs += /client/proc/cmd_admin_check_contents
-			verbs += /client/proc/cmd_admin_create_centcom_report
-			verbs += /client/proc/toggle_hear_deadcast
-			verbs += /client/proc/toggle_hear_radio
-			verbs += /client/proc/deadmin_self
-			//verbs += /client/proc/cmd_admin_attack_log				--Merged with view variables
-			verbs += /client/proc/cmd_admin_change_custom_event
-			//
-			//MOVED FROM MODERATOR
-			//
-			verbs += /client/proc/cmd_admin_subtle_message
-			verbs += /obj/admins/proc/announce
-			verbs += /obj/admins/proc/startnow
-			verbs += /obj/admins/proc/toggleAI							//Toggle the AI
-			verbs += /obj/admins/proc/toggleenter						//Toggle enterting
-//			verbs += /obj/admins/proc/toggleguests						//Toggle guests entering
-			verbs += /obj/admins/proc/toggleooc							//toggle ooc
-			verbs += /obj/admins/proc/toggleoocdead						//toggle ooc for dead/unc
-			verbs += /obj/admins/proc/voteres 							//toggle votes
-			verbs += /obj/admins/proc/vmode
-			verbs += /obj/admins/proc/votekill
-			verbs += /client/proc/deadchat								//toggles deadchat
-			//verbs += /client/proc/cmd_admin_mute	--was never used (according to stats trackind) - use show player panel --erro
-			verbs += /client/proc/dsay
-			verbs += /client/proc/game_panel
-			verbs += /obj/admins/proc/show_player_panel
-//			verbs += /client/proc/player_panel
-			verbs += /client/proc/player_panel_new
-			verbs += /client/proc/unban_panel
-			verbs += /client/proc/jobbans
-			verbs += /client/proc/voting
-			verbs += /client/proc/general_report
-			//verbs += /client/proc/air_report
-			//verbs += /client/proc/cmd_admin_prison 					--Merged with player panel
-			//verbs += /obj/admins/proc/unprison  						--Merged with player panel
-			verbs += /client/proc/playernotes
-		else	return
-
-		//Admin Candidate
-		if (holder.level >= 2)
-			verbs += /client/proc/cmd_admin_add_random_ai_law
-			verbs += /client/proc/secrets
-			verbs += /client/proc/check_antagonists
-			verbs += /client/proc/play_sound
-			verbs += /client/proc/stealth
-			verbs += /client/proc/deadmin_self
-		else	return
-
-		//Trial Admin
-		if (holder.level >= 3)
-			deadchat = 1
-			seeprayers = 1
-
-			verbs += /obj/admins/proc/view_txt_log
-			verbs += /obj/admins/proc/view_atk_log
-			verbs += /obj/admins/proc/toggleaban						//abandon mob
-			verbs += /obj/admins/proc/show_traitor_panel
-			verbs += /client/proc/getserverlog							//fetch an old serverlog to look at
-			//verbs += /client/proc/cmd_admin_remove_plasma 			--This proc is outdated, does not do anything
-			verbs += /client/proc/admin_call_shuttle
-			verbs += /client/proc/admin_cancel_shuttle
-			verbs += /client/proc/cmd_admin_dress
-			verbs += /client/proc/respawn_character
-			verbs += /client/proc/spawn_xeno
-			verbs += /client/proc/toggleprayers
-			verbs += /client/proc/deadmin_self
-			verbs += /client/proc/tension_report
-			verbs += /client/proc/toggleadminhelpsound
-			verbs += /proc/possess
-			verbs += /proc/release
-			verbs += /client/proc/make_tajaran
-			verbs += /client/proc/admin_deny_shuttle
-			verbs += /client/proc/cmd_admin_christmas
-			verbs += /client/proc/editappear
-		else	return
-
-		//Badmin
-		if (holder.level >= 4)
-			verbs += /obj/admins/proc/adrev								//toggle admin revives
-			verbs += /obj/admins/proc/adspawn							//toggle admin item spawning
-			verbs += /client/proc/debug_variables
-			verbs += /client/proc/cmd_modify_ticker_variables
-			verbs += /client/proc/cmd_modify_ref_variables
-			verbs += /client/proc/Debug2								//debug toggle switch
-			verbs += /client/proc/toggle_view_range
-			verbs += /client/proc/Getmob
-			verbs += /client/proc/Getkey
-			verbs += /client/proc/sendmob
-			verbs += /client/proc/Jump
-			verbs += /client/proc/jumptokey
-			verbs += /client/proc/jumptomob
-			verbs += /client/proc/jumptoturf
-			verbs += /client/proc/Open_Minimap
-			verbs += /client/proc/cmd_admin_delete
-			verbs += /client/proc/cmd_admin_add_freeform_ai_law
-			verbs += /client/proc/cmd_admin_add_random_ai_law
-			verbs += /client/proc/cmd_admin_rejuvenate
-			verbs += /client/proc/hide_most_verbs
-			verbs += /client/proc/jumptocoord
-			verbs += /client/proc/deadmin_self
-			//verbs += /client/proc/cmd_admin_godmode					--Merged with view variables
-			//verbs += /client/proc/cmd_admin_gib 						--Merged with view variables
-			//verbs += /proc/togglebuildmode 							--Merged with view variables
-			//verbs += /client/proc/cmd_modify_object_variables 		--Merged with view variables
-			verbs += /client/proc/togglebuildmodeself
-			verbs += /client/proc/debug_master_controller
-		else	return
-
-		//Game Admin
-		if (holder.level >= 5)
-			verbs += /obj/admins/proc/spawn_atom
-			verbs += /client/proc/cmd_admin_list_open_jobs
-			verbs += /client/proc/cmd_admin_direct_narrate
-			verbs += /client/proc/colorooc
-			verbs += /client/proc/cmd_admin_world_narrate
-			verbs += /client/proc/cmd_debug_del_all
-			verbs += /client/proc/cmd_debug_tog_aliens
-//			verbs += /client/proc/mapload
-			verbs += /client/proc/check_words
-			verbs += /client/proc/drop_bomb
-			//verbs += /client/proc/kill_airgroup
-			//verbs += /client/proc/cmd_admin_drop_everything			--Merged with view variables
-			verbs += /client/proc/make_sound
-			verbs += /client/proc/play_local_sound
-			verbs += /client/proc/send_space_ninja
-			verbs += /client/proc/restartcontroller						//Can call via aproccall --I_hate_easy_things.jpg, Mport --Agouri
-			verbs += /client/proc/Blobize								//I need to remember to move/remove this later
-			verbs += /client/proc/toggle_clickproc 						//TODO ERRORAGE (Temporary proc while the new clickproc is being tested)
-			verbs += /client/proc/toggle_gravity_on
-			verbs += /client/proc/toggle_gravity_off
-			verbs += /client/proc/toggle_random_events
-			verbs += /client/proc/deadmin_self
-			if(ENABLE_MEMOS)	verbs += /client/proc/admin_memo
-			//verbs += /client/proc/cmd_mass_modify_object_variables 	--Merged with view variables
-			//verbs += /client/proc/cmd_admin_explosion					--Merged with view variables
-			//verbs += /client/proc/cmd_admin_emp						--Merged with view variables
-			//verbs += /client/proc/give_spell 							--Merged with view variables
-			//verbs += /client/proc/cmd_admin_ninjafy					--Merged with view variables
-			//verbs += /client/proc/cmd_switch_radio					--removed as tcommsat is staying
-			// Moved over from tg's Game Master:
-			verbs += /obj/admins/proc/toggle_aliens			//toggle aliens
-			verbs += /obj/admins/proc/toggle_space_ninja	//toggle ninjas
-			verbs += /client/proc/triple_ai
-			verbs += /client/proc/object_talk
-			verbs += /client/proc/strike_team
-			verbs += /client/proc/admin_invis
-			verbs += /client/proc/cmd_admin_godmode
-			verbs += /client/proc/delbook
-			verbs += /client/proc/Force_Event_admin
-			verbs += /client/proc/radioalert
-			verbs += /client/proc/CarbonCopy
-			verbs += /client/proc/kill_air		//formerly game masters only. this should help for zas debugging while we're having these issues
-			//verbs += /client/proc/jump_to_dead_group
-		else	return
-
-		//Game Master
-		if (holder.level >= 6)
-			verbs += /obj/admins/proc/adjump
-			verbs += /client/proc/callproc
-			verbs += /client/proc/get_admin_state
-			verbs += /client/proc/reload_admins
-			verbs += /client/proc/cmd_debug_make_powernets
-			verbs += /client/proc/enable_debug_verbs
-			verbs += /client/proc/everyone_random
-			verbs += /client/proc/only_one
-			verbs += /client/proc/deadmin_self
-			verbs += /client/proc/giveruntimelog						//used by coders to retrieve runtime logs
-			verbs += /client/proc/cinematic								//show a cinematic sequence
-			verbs += /client/proc/startSinglo							//Used to prevent the station from losing power while testing stuff out.
-			verbs += /client/proc/toggle_log_hrefs
-			verbs += /client/proc/enable_debug_verbs
-			verbs += /client/proc/callprocgen
-			verbs += /client/proc/callprocobj
-			verbs += /client/proc/rnd_check_designs
-			verbs += /client/proc/CarbonCopy
-		else	return
+		//here you have verbs that disregard levels completely, aka you always have them even when deverbed
+		verbs += /client/proc/toggle_verbs
+		holder.grant_admin_permanence()
+//		if(scarecrows)
+//			for(var/S in scarecrows)
+//				if(S:ckey == ckey) holder.scarecrow = S
 	return
 
 
 /client/proc/clear_admin_verbs()
-	deadchat = 0
+	holder.deadchat = 0
+	holder.seeprayers = 0
 
-	verbs -= /obj/admins/proc/vmode
-	verbs -= /obj/admins/proc/votekill
-	verbs -= /obj/admins/proc/announce
-	verbs -= /obj/admins/proc/startnow
-	verbs -= /obj/admins/proc/toggleAI									//Toggle the AI
-	verbs -= /obj/admins/proc/toggleenter								//Toggle enterting
-//	verbs -= /obj/admins/proc/toggleguests								//Toggle guests entering
-	verbs -= /obj/admins/proc/toggleooc									//toggle ooc
-	verbs -= /obj/admins/proc/toggleoocdead         					//toggle ooc for dead/unc
-	verbs -= /obj/admins/proc/voteres 									//toggle votes
-	verbs -= /obj/admins/proc/delay										//game start delay
-	verbs -= /obj/admins/proc/immreboot									//immediate reboot
-	verbs -= /obj/admins/proc/restart									//restart
-	verbs -= /obj/admins/proc/show_traitor_panel
-	verbs -= /obj/admins/proc/show_player_panel
-	verbs -= /obj/admins/proc/toggle_aliens								//toggle aliens
-	verbs -= /obj/admins/proc/toggle_space_ninja						//toggle ninjas
-	verbs -= /obj/admins/proc/adjump
-	verbs -= /obj/admins/proc/view_txt_log
-	verbs -= /obj/admins/proc/view_atk_log
-	verbs -= /obj/admins/proc/spawn_atom
-	verbs -= /obj/admins/proc/adrev										//toggle admin revives
-	verbs -= /obj/admins/proc/adspawn									//toggle admin item spawning
-	verbs -= /obj/admins/proc/toggleaban								//abandon mob
-	verbs -= /client/proc/hide_verbs
-	verbs -= /client/proc/hide_most_verbs
-	verbs -= /client/proc/show_verbs
-	verbs -= /client/proc/colorooc
-	verbs -= /client/proc/triple_ai
-	verbs -= /client/proc/get_admin_state
-	verbs -= /client/proc/reload_admins
-	verbs -= /client/proc/kill_air
-	verbs -= /client/proc/cmd_debug_make_powernets
-	verbs -= /client/proc/object_talk
-	verbs -= /client/proc/strike_team
-	verbs -= /client/proc/cmd_admin_list_open_jobs
-	verbs -= /client/proc/cmd_admin_direct_narrate
-	verbs -= /client/proc/cmd_admin_world_narrate
-	verbs -= /client/proc/callproc
-	verbs -= /client/proc/Cell
-	verbs -= /client/proc/cmd_debug_del_all
-	verbs -= /client/proc/cmd_debug_tog_aliens
-//	verbs -= /client/proc/mapload
-	verbs -= /client/proc/check_words
-	verbs -= /client/proc/drop_bomb
-	//verbs -= /client/proc/cmd_admin_drop_everything					--merged with view variables
-	verbs -= /client/proc/make_sound
-	verbs -= /client/proc/only_one
-	verbs -= /client/proc/send_space_ninja
-	verbs -= /client/proc/debug_variables
-	verbs -= /client/proc/cmd_modify_ticker_variables
-	verbs -= /client/proc/Debug2										//debug toggle switch
-	verbs -= /client/proc/toggle_view_range
-	verbs -= /client/proc/Getmob
-	verbs -= /client/proc/Getkey
-	verbs -= /client/proc/sendmob
-	verbs -= /client/proc/Jump
-	verbs -= /client/proc/jumptokey
-	verbs -= /client/proc/jumptomob
-	verbs -= /client/proc/jumptoturf
-	verbs -= /client/proc/cmd_admin_add_freeform_ai_law
-	verbs -= /client/proc/cmd_admin_add_random_ai_law
-	verbs -= /client/proc/cmd_admin_rejuvenate
-	verbs -= /client/proc/cmd_admin_delete
-	verbs -= /client/proc/toggleadminhelpsound
-	//verbs -= /client/proc/cmd_admin_remove_plasma						--This proc is outdated, does not do anything
-	verbs -= /client/proc/admin_call_shuttle
-	verbs -= /client/proc/admin_cancel_shuttle
-	verbs -= /client/proc/cmd_admin_dress
-	verbs -= /client/proc/respawn_character
-	verbs -= /client/proc/spawn_xeno
-	verbs -= /client/proc/cmd_admin_add_random_ai_law
-	verbs -= /client/proc/secrets
-	verbs -= /client/proc/check_antagonists
-	verbs -= /client/proc/play_sound
-	verbs -= /client/proc/stealth
-	verbs -= /client/proc/cmd_admin_check_contents
-	verbs -= /client/proc/cmd_admin_create_centcom_report
-	verbs -= /client/proc/deadchat										//toggles deadchat
-	//verbs -= /client/proc/cmd_admin_mute	--was never used (according to stats trackind) - use show player panel --erro
-	verbs -= /client/proc/cmd_admin_pm_context
-	verbs -= /client/proc/cmd_admin_pm_panel
-	verbs -= /client/proc/cmd_admin_say
-	verbs -= /client/proc/cmd_mod_say
-	verbs -= /client/proc/cmd_admin_subtle_message
-	verbs -= /client/proc/dsay
-	verbs -= /client/proc/admin_play
-	verbs -= /client/proc/admin_observe
-	verbs -= /client/proc/game_panel
-//	verbs -= /client/proc/player_panel
-	verbs -= /client/proc/unban_panel
-	verbs -= /client/proc/jobbans
-	verbs -= /client/proc/voting
-	verbs -= /client/proc/hide_verbs
-	verbs -= /client/proc/general_report
-	//verbs -= /client/proc/air_report
-	verbs -= /client/proc/cmd_admin_say
-	verbs -= /client/proc/cmd_admin_gib_self
-	verbs -= /client/proc/update_mob_sprite
-	verbs -= /client/proc/restartcontroller
-	verbs -= /client/proc/play_local_sound
-	verbs -= /client/proc/enable_debug_verbs
-	verbs -= /client/proc/toggleprayers
-	verbs -= /client/proc/Blobize
-	verbs -= /client/proc/toggle_clickproc 								//TODO ERRORAGE (Temporary proc while the enw clickproc is being tested)
-	verbs -= /client/proc/toggle_hear_deadcast
-	verbs -= /client/proc/toggle_hear_radio
-	verbs -= /client/proc/tension_report
-	verbs -= /client/proc/player_panel_new
-	verbs -= /client/proc/mod_panel
-	verbs -= /client/proc/toggle_gravity_on
-	verbs -= /client/proc/toggle_gravity_off
-	verbs -= /client/proc/toggle_random_events
-	verbs -= /client/proc/deadmin_self
-	verbs -= /client/proc/jumptocoord
-	verbs -= /client/proc/everyone_random
-	verbs -= /client/proc/giveruntimelog								//used by coders to retrieve runtime logs
-	verbs -= /client/proc/getserverlog
-	verbs -= /client/proc/cinematic										//show a cinematic sequence
-	verbs -= /client/proc/admin_memo
-	verbs -= /client/proc/investigate_show								//investigate in-game mishaps using various logs.
-	verbs -= /client/proc/toggle_log_hrefs
-	verbs -= /client/proc/cmd_admin_change_custom_event
-	verbs -= /client/proc/admin_invis
-	verbs -= /client/proc/callprocgen
-	verbs -= /client/proc/callprocobj
-	verbs -= /client/proc/cmd_admin_godmode
-	verbs -= /client/proc/delbook
-	verbs -= /client/proc/Force_Event_admin
-	verbs -= /client/proc/radioalert
-	verbs -= /client/proc/rnd_check_designs
-	verbs -= /client/proc/CarbonCopy
-	verbs -= /client/proc/cmd_modify_ref_variables
-	verbs -= /proc/possess
-	verbs -= /proc/release
-	//verbs -= /client/proc/give_spell 									--Merged with view variables
-	//verbs -= /client/proc/cmd_admin_ninjafy 							--Merged with view variables
-	//verbs -= /client/proc/cmd_modify_object_variables 				--Merged with view variables
-	//verbs -= /client/proc/cmd_admin_explosion							--Merged with view variables
-	//verbs -= /client/proc/cmd_admin_emp								--Merged with view variables
-	//verbs -= /client/proc/cmd_admin_godmode							--Merged with view variables
-	//verbs -= /client/proc/cmd_admin_gib 								--Merged with view variables
-	//verbs -= /client/proc/cmd_mass_modify_object_variables			--Merged with view variables
-	//verbs -= /client/proc/cmd_admin_attack_log						--Merged with view variables
-	//verbs -= /proc/togglebuildmode									--Merged with view variables
-	//verbs -= /client/proc/cmd_admin_prison 							--Merged with player panel
-	//verbs -= /obj/admins/proc/unprison 								--Merged with player panel
-	//verbs -= /client/proc/cmd_switch_radio							--removed because tcommsat is staying
-	verbs -= /client/proc/togglebuildmodeself
-	//verbs -= /client/proc/kill_airgroup
-	verbs -= /client/proc/debug_master_controller
-	verbs -= /client/proc/make_tajaran
-	verbs -= /client/proc/admin_deny_shuttle
-	verbs -= /client/proc/cmd_admin_christmas
-	verbs -= /client/proc/editappear
-	//verbs -= /client/proc/jump_to_dead_group
-	verbs -= /client/proc/playernotes
-	verbs -= /obj/admins/proc/show_skills
-	verbs -= /client/proc/enable_debug_verbs
+	for(var/V in all_admin_verbs)
+		if(V in verbs)
+			verbs -= V
+	verbs -= /client/proc/toggle_verbs
 	return
+
+
+/client/proc/set_desired_spammage_level()
+	set category = "Admin"
+	set name = "Choose Spammage"
+	var/holdalert = alert("Choose the level!",,"Adminlog: [(holder.spammage & ADMINLOGSPAM) ? "ON" : "OFF"]", "Login: [(holder.spammage & LOGINSPAM) ? "ON" : "OFF"]", "Failogin: [(holder.spammage & FAILOGINSPAM) ? "ON" : "OFF"]")
+	switch(holdalert)
+		if("Adminlog: ON")
+			holder.spammage &= ~ADMINLOGSPAM
+		if("Adminlog: OFF")
+			holder.spammage |= ADMINLOGSPAM
+		if("Login: ON")
+			holder.spammage &= ~LOGINSPAM
+		if("Login: OFF")
+			holder.spammage |= LOGINSPAM
+		if("Failogin: ON")
+			holder.spammage &= ~FAILOGINSPAM
+		if("Failogin: OFF")
+			holder.spammage |= FAILOGINSPAM
 
 
 /client/proc/admin_observe()
@@ -495,10 +117,10 @@
 	verbs -= /client/proc/admin_play
 	spawn( 1200 )
 		verbs += /client/proc/admin_play
-	var/rank = holder.rank
-	clear_admin_verbs()
+	//var/rank = holder.rank
+	//clear_admin_verbs()
 	holder.state = 2
-	update_admins(rank)
+	//update_admins(rank)
 	if(!istype(mob, /mob/dead/observer))
 		mob.admin_observing = 1
 		mob.adminghostize(1)
@@ -514,11 +136,11 @@
 	verbs -= /client/proc/admin_observe
 	spawn( 1200 )
 		verbs += /client/proc/admin_observe
-	var/rank = holder.rank
-	clear_admin_verbs()
+	//var/rank = holder.rank
+	//clear_admin_verbs()
 	holder.state = 1
-	update_admins(rank)
-	if(istype(mob, /mob/dead/observer))
+	//update_admins(rank)
+	if(istype(mob, /mob/dead/observer) && mob:corpse)
 		mob:reenter_corpse()
 	src << "\blue You are now playing"
 //	feedback_add_details("admin_verb","P") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
@@ -574,6 +196,7 @@
 /client/proc/jobbans()
 	set name = "Unjobban Panel"
 	set category = "Admin"
+//	set hidden = 1 //LEBEDEV
 	if(holder)
 		holder.Jobbans()
 //	feedback_add_details("admin_verb","VJB") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
@@ -613,7 +236,7 @@
 /client/proc/colorooc()
 	set category = "Fun"
 	set name = "OOC Text Color"
-	ooccolor = input(src, "Please select your OOC colour.", "OOC colour") as color
+	ooccolor = input(src, "Please select your OOC color.", "OOC color") as color
 //	feedback_add_details("admin_verb","OC") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 	return
 
@@ -623,21 +246,71 @@
 	if(!holder)
 		src << "Only administrators may use this command."
 		return
-	stealth = !stealth
-	if(stealth)
+	//src = src.holder
+	if(holder.mimic)
+		src.mimic()
+	if(!holder.stealth)
 		var/new_key = trim(input("Enter your desired display name.", "Fake Key", key))
 		if(!new_key)
-			stealth = 0
+			holder.stealth = 0
 			return
 		new_key = strip_html(new_key)
 		if(length(new_key) >= 26)
 			new_key = copytext(new_key, 1, 26)
 		fakekey = new_key
+		holder.stealth = 1
 	else
 		fakekey = null
-	log_admin("[key_name(usr)] has turned stealth mode [stealth ? "ON" : "OFF"]")
-	message_admins("[key_name_admin(usr)] has turned stealth mode [stealth ? "ON" : "OFF"]", 1)
-//	feedback_add_details("admin_verb","SM") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+		holder.stealth = 0
+	log_admin("[key_name(usr)] has turned stealth mode [holder.stealth ? "ON with name [fakekey]" : "OFF"]")
+	message_admins("[key_name_admin(usr)] has turned stealth mode [holder.stealth ? "ON with name [fakekey]" : "OFF"]", 1)
+
+/client/proc/mimic()
+	set category = "Admin"
+	set name = "Mimic Mode"
+	if(!holder)
+		src << "Only administrators may use this command."
+		return
+	//src = src.holder
+	if(holder.stealth)
+		src.stealth()
+	if(!holder.mimic)
+		var/new_key = trim(input("Enter your desired display name.", "Fake Key", key))
+		if(!new_key)
+			holder.stealth = 0
+			return
+		new_key = strip_html(new_key)
+		if(length(new_key) >= 26)
+			new_key = copytext(new_key, 1, 26)
+		fakekey = new_key
+		holder.mimic = 1
+	else
+		fakekey = null
+		holder.mimic = 0
+	log_admin("[key_name(usr)] has turned mimic mode [holder.mimic ? "ON with name [fakekey]" : "OFF"]")
+	message_admins("[key_name_admin(usr)] has turned mimic mode [holder.mimic ? "ON with name [fakekey]" : "OFF"]", 1)
+
+/client/proc/fakerank()
+	set category = "Admin"
+	set name = "Fake Rank"
+	if(!holder)
+		src << "Only administrators may use this command."
+		return
+	//src = src.holder
+	if(!holder.fakerank)
+		var/new_rank = trim(input("Enter your desired display rank.", "Fake Rank", holder.rank))
+		if(!new_rank)
+			holder.fakerank = null
+			return
+		new_rank = strip_html(new_rank)
+		if(length(new_rank) >= 26)
+			new_rank = copytext(new_rank, 1, 26)
+		holder.fakerank = new_rank
+	else
+		holder.fakerank = null
+	log_admin("[key_name(usr)] has turned fakerank [holder.fakerank ? "ON with rank [holder.fakerank]" : "OFF"]")
+	message_admins("[key_name_admin(usr)] has turned fakerank [holder.fakerank ? "ON with name [holder.fakerank]" : "OFF"]", 1)
+
 
 /client/proc/playernotes()
 	set name = "Show Player Info"
@@ -734,7 +407,7 @@
 		togglebuildmode(src.mob)
 //	feedback_add_details("admin_verb","TBMS") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-
+//BARHMARK
 /client/proc/toggleadminhelpsound()
 	set name = "Toggle Adminhelp Sound"
 	set category = "Admin"
@@ -744,6 +417,7 @@
 	else
 		usr << "You will no longer hear a sound when adminhelps arrive"
 //	feedback_add_details("admin_verb","AHS") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+
 
 /client/proc/object_talk(var/msg as text) // -- TLE
 	set category = "Special Verbs"
@@ -770,16 +444,6 @@
 	log_admin("[key_name(usr)] used 'kill air' (toggle), kill_air: [kill_air].")
 	message_admins("\blue [key_name_admin(usr)] used 'kill air'.", 1)
 
-/client/proc/show_verbs()
-	set name = "Toggle admin verb visibility"
-	set category = "Admin"
-	src << "Restoring admin verbs back"
-
-	var/temp = deadchat
-	clear_admin_verbs()
-	update_admins(holder.rank)
-	deadchat = temp
-//	feedback_add_details("admin_verb","TAVVS") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /client/proc/toggle_clickproc() //TODO ERRORAGE (This is a temporary verb here while I test the new clicking proc)
 	set name = "Toggle NewClickProc"
@@ -793,8 +457,8 @@
 /client/proc/toggle_hear_deadcast()
 	set name = "Toggle Hear Deadcast"
 	set category = "Admin"
-
 	if(!holder) return
+	src = src.holder
 	STFU_ghosts = !STFU_ghosts
 	usr << "You will now [STFU_ghosts ? "not hear" : "hear"] ghosts"
 //	feedback_add_details("admin_verb","THDC") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
@@ -802,7 +466,6 @@
 /client/proc/toggle_hear_radio()
 	set name = "Toggle Hear Radio"
 	set category = "Admin"
-
 	if(!holder) return
 	STFU_radio = !STFU_radio
 	usr << "You will now [STFU_radio ? "not hear" : "hear"] radio chatter from nearby radios or speakers"
@@ -813,8 +476,8 @@
 	set category = "Admin"
 
 	if(src.holder)
-		if(alert("Confirm self-deadmin for the round? You can't re-admin yourself without someont promoting you.",,"Yes","No") == "Yes")
-			del(holder)
+		if(alert("Confirm self-deadmin for the round? You can't re-admin yourself without someone promoting you.",,"Yes","No") == "Yes")
+			//del(holder)
 			log_admin("[src] deadmined themself.")
 			message_admins("[src] deadmined themself.", 1)
 			src.clear_admin_verbs()
@@ -824,65 +487,21 @@
 //	feedback_add_details("admin_verb","DAS") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 
-/client/proc/hide_most_verbs()//Allows you to keep some functionality while hiding some verbs
-	set name = "Toggle most admin verb visibility"
+/client/proc/toggle_verbs()
+	set name = "Toggle ALL verbs"
 	set category = "Admin"
-	src << "Hiding most admin verbs"
+	set desc = "Toggle ALL of the verbs"
 
-	var/temp = deadchat
-	clear_admin_verbs()
-	deadchat = temp
-	verbs -= /client/proc/hide_verbs
-	verbs -= /client/proc/hide_most_verbs
-	verbs += /client/proc/show_verbs
+	if(holder.hidverbs)
+		update_admins(holder.rank)
+		holder.hidverbs = 0
+	else
+		clear_admin_verbs()
+		holder.deadchat = 1
+		holder.hidverbs = 1
+		verbs += /client/proc/toggle_verbs
 
-	if(holder.level >= 5)//Game Admin********************************************************************
-		verbs += /client/proc/colorooc
-
-	if(holder.level >= 4)//Badmin********************************************************************
-		verbs += /client/proc/debug_variables
-		//verbs += /client/proc/cmd_modify_object_variables --merged with view vairiables
-		verbs += /client/proc/Jump
-		verbs += /client/proc/jumptoturf
-		verbs += /client/proc/togglebuildmodeself
-
-	verbs += /client/proc/dsay
-	verbs += /client/proc/admin_play
-	verbs += /client/proc/admin_observe
-	verbs += /client/proc/game_panel
-//	verbs += /client/proc/player_panel
-	verbs += /client/proc/cmd_admin_subtle_message
-	verbs += /client/proc/cmd_admin_pm_context
-	verbs += /client/proc/cmd_admin_pm_panel
-	verbs += /client/proc/cmd_admin_gib_self
-	verbs += /client/proc/admin_invis
-
-	verbs += /client/proc/deadchat					//toggles deadchat
-	verbs += /obj/admins/proc/toggleooc				//toggle ooc
-	verbs += /client/proc/cmd_admin_say//asay
-	verbs += /client/proc/cmd_mod_say
-	verbs += /client/proc/toggleadminhelpsound
-//	feedback_add_details("admin_verb","HMV") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
-	return
-
-
-/client/proc/hide_verbs()
-	set name = "Toggle admin verb visibility"
-	set category = "Admin"
-	src << "Hiding almost all admin verbs"
-
-	var/temp = deadchat
-	clear_admin_verbs()
-	deadchat = temp
-	verbs -= /client/proc/hide_verbs
-	verbs -= /client/proc/hide_most_verbs
-	verbs += /client/proc/show_verbs
-
-	if(holder.level > 0)
-		verbs += /client/proc/deadchat					//toggles deadchat
-		verbs += /obj/admins/proc/toggleooc				//toggle ooc
-	verbs += /client/proc/cmd_admin_say//asay
-	verbs += /client/proc/cmd_mod_say//asay
+		verbs += /client/proc/cmd_admin_say//asay
 //	feedback_add_details("admin_verb","TAVVH") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 	return
 
@@ -1029,7 +648,8 @@
 		del(a)
 
 /client/proc/CarbonCopy(atom/movable/O as mob|obj in world)
-	set category = "Admin"
+	set category = "Debug"
+	set name = "CarbonCopy"
 	var/atom/movable/NewObj = new O.type(usr.loc)
 	for(var/V in O.vars)
 		if (issaved(O.vars[V]))
@@ -1050,3 +670,187 @@
 			else
 				NewObj.vars[V] = vars[V]
 	return NewObj
+
+/*
+/client/proc/scarecrow()
+	set category = "Fun"
+	set desc = "Puts up a scarecrow to, uhm, scare players out of not abiding rules."
+	set name = "Scarecrow!"
+
+	if (!holder)
+		usr << "Sorry, but you don't have necessary variables to run Scarecrow."
+		return
+	for(var/datum/admins/scarecrow/S in scarecrows)
+		if(S.ckey == ckey)
+			scarecrows -= S
+			del(S)
+			usr << "Scarecrow removed!"
+			holder.scarecrow = null
+			return
+	var/datum/admins/scarecrow/pugalo = new/datum/admins/scarecrow
+	pugalo.ckey = ckey
+	pugalo.key = (fakekey ? fakekey : key)
+	pugalo.rank = (holder.fakerank ? holder.fakerank : holder.rank)
+//	pugalo.src = null
+	scarecrows += pugalo
+	holder.scarecrow = pugalo
+	usr << "Scarecrow successfully created! You are also not visible in adminwho and who while scarecrow exists."
+*/
+//-1 is observer, 0 is moderator, 1 is admin, 2 is server, 3 is reserved, 4 is debug, 5 is FUN TIME
+//LIST ALL OF THE ADMIN VERBS WITH RANK HERE!
+//REMEMBER TO USE INLINE COMMENTS OR USE ENTIRE LINE!
+//FIVE - FUNTIME
+var/list/all_admin_verbs = list("/client/proc/send_space_ninja" = 5, \
+	"/client/proc/mimic" = 5, \
+	"/client/proc/fakerank" = 5, \
+	"/client/proc/only_one" = 5, \
+	"/proc/possess" = 5, \
+	"/proc/release" = 5, \
+	"/client/proc/drop_bomb" = 5, \
+	"/client/proc/spawn_xeno" = 5, \
+	"/client/proc/strike_team" = 5, \
+	"/client/proc/toggleprayers" = 5, \
+	"/client/proc/Blobize" = 5, \
+	"/client/proc/toggle_gravity_on" = 5, \
+	"/client/proc/toggle_gravity_off" = 5, \
+	"/client/proc/cinematic" = 5, \
+	"/client/proc/admin_invis" = 5, \
+	"/client/proc/cmd_admin_godmode" = 5, \
+	"/client/proc/cmd_admin_christmas" = 5, \
+	"/client/proc/colorooc" = 5, \
+/*	"/client/proc/scarecrow" = 5,\*/
+//FOUR - DEBUG
+	"/client/proc/startSinglo" = 4, \
+	"/client/proc/enable_debug_verbs" = 4, \
+	"/client/proc/callproc" = 4, \
+	"/client/proc/kill_air" = 4, \
+	"/client/proc/debug_variables" = 4, \
+	"/datum/admins/proc/spawn_atom" = 4, \
+	"/client/proc/cmd_debug_make_powernets" = 4, \
+	"/client/proc/cmd_debug_del_all" = 4, \
+	"/client/proc/cmd_debug_tog_aliens" = 4, \
+	"/client/proc/enable_debug_verbs" = 4, \
+	"/client/proc/Cell" = 4, \
+	"/client/proc/debug_variables" = 4, \
+	"/client/proc/Debug2" = 4, \
+	"/client/proc/cmd_modify_ticker_variables" = 4, \
+	"/client/proc/cmd_admin_delete" = 4, \
+	"/client/proc/cmd_admin_check_contents" = 4, \
+	"/client/proc/general_report" = 4, \
+	"/client/proc/restartcontroller" = 4, \
+	"/client/proc/toggle_clickproc" = 4, \
+	"/client/proc/tension_report" = 4, \
+	"/client/proc/giveruntimelog" = 4, \
+	"/client/proc/getserverlog" = 4, \
+	"/client/proc/toggle_log_hrefs" = 4, \
+	"/client/proc/callprocgen" = 4, \
+	"/client/proc/callprocobj" = 4, \
+	"/client/proc/delbook" = 4, \
+	"/client/proc/rnd_check_designs" = 4, \
+	"/client/proc/CarbonCopy" = 4, \
+	"/client/proc/cmd_modify_ref_variables" = 4, \
+	"/client/proc/togglebuildmodeself" = 4, \
+	"/client/proc/debug_master_controller" = 4, \
+	"/client/proc/editappear" = 4, \
+	"/datum/admins/proc/show_skills" = 4, \
+//THREE - SHIT ADMINS SHOULDNT HAVE BUT DO
+	"/client/proc/object_talk" = 3, \
+	"/client/proc/toggle_view_range" = 3, \
+	"/client/proc/cmd_admin_gib_self" = 3, \
+	"/client/proc/make_sound" = 3, \
+	"/client/proc/cmd_admin_direct_narrate" = 3, \
+	"/client/proc/cmd_admin_world_narrate" = 3, \
+	"/client/proc/cmd_admin_rejuvenate" = 3, \
+	"/client/proc/cmd_admin_add_freeform_ai_law" = 3, \
+	"/client/proc/cmd_admin_add_random_ai_law" = 3, \
+	"/client/proc/cmd_admin_dress" = 3, \
+	"/client/proc/respawn_character" = 3, \
+	"/client/proc/play_sound" = 3, \
+	"/client/proc/cmd_admin_subtle_message" = 3, \
+	"/client/proc/update_mob_sprite" = 3, \
+	"/client/proc/play_local_sound" = 3, \
+	"/client/proc/toggle_random_events" = 3, \
+	"/client/proc/everyone_random" = 3, \
+	"/client/proc/cmd_admin_change_custom_event" = 3, \
+	"/client/proc/Force_Event_admin" = 3, \
+	"/client/proc/radioalert" = 3, \
+	"/client/proc/make_tajaran" = 3, \
+	"/client/proc/playernotes" = 3, \
+//TWO - SERVER
+	"/datum/admins/proc/immreboot" = 2, \
+	"/datum/admins/proc/restart" = 2, \
+	"/client/proc/restartcontroller" = 2, \
+	"/client/proc/reload_admins" = 2, \
+	"/datum/admins/proc/delay" = 2, \
+	"/datum/admins/proc/startnow" = 2, \
+	"/datum/admins/proc/view_txt_log" = 2, \
+	"/datum/admins/proc/view_atk_log" = 2, \
+	"/client/proc/voting" = 2, \
+	"/client/proc/investigate_show" = 2, \
+//ONE - ADMIN
+	"/client/proc/check_words" = 1, \
+	"/datum/admins/proc/votekill" = 1, \
+	"/datum/admins/proc/toggleAI" = 1, \
+	"/datum/admins/proc/toggleenter" = 1, \
+	"/datum/admins/proc/toggleooc" = 1, \
+	"/datum/admins/proc/toggleoocdead" = 1, \
+	"/datum/admins/proc/voteres" = 1, \
+	"/datum/admins/proc/toggle_aliens" = 1, \
+	"/datum/admins/proc/toggle_space_ninja" = 5, \
+	"/datum/admins/proc/adrev" = 1, \
+	"/datum/admins/proc/adspawn" = 1, \
+	"/datum/admins/proc/toggleaban" = 1, \
+	"/datum/admins/proc/announce" = 1, \
+	"/datum/admins/proc/adjump" = 1, \
+	"/client/proc/triple_ai" = 1, \
+	"/client/proc/stealth" = 1, \
+	"/client/proc/secrets" = 1, \
+	"/client/proc/game_panel" = 1, \
+	"/client/proc/cmd_admin_list_open_jobs" = 1, \
+	"/datum/admins/proc/vmode" = 1, \
+	"/client/proc/Getmob" = 1, \
+	"/client/proc/Getkey" = 1, \
+	"/client/proc/sendmob" = 1, \
+	"/client/proc/admin_call_shuttle" = 1, \
+	"/client/proc/admin_cancel_shuttle" = 1, \
+	"/client/proc/cmd_admin_create_centcom_report" = 1, \
+	"/client/proc/player_panel_new" = 1, \
+	"/client/proc/admin_memo" = 1, \
+	"/client/proc/admin_deny_shuttle" = 1, \
+//ZERO - MODERATOR
+	"/datum/admins/proc/show_traitor_panel" = 0, \
+	"/datum/admins/proc/show_player_panel" = 0, \
+/*	"/client/proc/get_admin_state" = 0, \*/
+	"/client/proc/check_antagonists" = 0, \
+	"/client/proc/deadchat" = 0, \
+	"/client/proc/unban_panel" = 0, \
+	"/client/proc/jobbans" = 0, \
+	"/client/proc/Jump" = 0, \
+	"/client/proc/jumptokey" = 0, \
+	"/client/proc/jumptomob" = 0, \
+	"/client/proc/jumptoturf" = 0, \
+	"/client/proc/jumptocoord" = 0, \
+	"/client/proc/dsay" = 0, \
+	"/client/proc/toggle_hear_deadcast" = 0, \
+	"/client/proc/toggle_hear_radio" = 0, \
+//MINUS ONE - OBSERVER
+	"/client/proc/cmd_admin_say" = -1, \
+	"/client/proc/admin_play" = -1, \
+	"/client/proc/admin_observe" = -1, \
+	"/client/proc/toggleadminhelpsound" = -1, \
+	"/client/proc/cmd_admin_pm_context" = -1, \
+	"/client/proc/cmd_admin_pm_panel" = -1, \
+	"/client/proc/deadmin_self" = -1)
+
+//ADMIN RANK-RELATED PROCS
+
+/proc/get_rank_from_level(var/level)
+	switch(level)
+		if(9) return "Monarch"
+		if(6) return "Batman"
+		if(5) return "Tyrant"
+		if(3) return "General"
+		if(0) return "Comandante"
+		if(-1) return "Watcher"
+		if(-2) return null
+		else return null

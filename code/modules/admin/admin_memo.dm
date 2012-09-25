@@ -45,7 +45,7 @@
 	var/savefile/F = new(MEMOFILE)
 	if(F)
 		var/ckey
-		if( holder.rank == "Game Master" )
+		if(holder.level >= 5)
 			ckey = input(src,"Whose memo shall we remove?","Remove Memo",null) as null|anything in F.dir
 		else
 			ckey = src.ckey

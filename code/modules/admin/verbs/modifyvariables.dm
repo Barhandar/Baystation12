@@ -1,5 +1,5 @@
 var/list/forbidden_varedit_object_types = list(
-										/obj/admins,						//Admins editing their own admin-power object? Yup, sounds like a good idea.
+										/datum/admins,						//Admins editing their own admin-power object? Yup, sounds like a good idea.
 										/obj/machinery/blackbox_recorder,	//Prevents people messing with feedback gathering
 										/datum/feedback_variable			//Prevents people messing with feedback gathering
 									)
@@ -187,7 +187,7 @@ var/list/forbidden_varedit_object_types = list(
 
 	var/dir
 
-	if (locked.Find(variable) && !(src.holder.rank in list("Game Master", "Game Admin")))
+	if (locked.Find(variable) && holder.level <= 1)
 		return
 
 	if(isnull(variable))
@@ -342,7 +342,7 @@ var/list/forbidden_varedit_object_types = list(
 		return
 
 	for(var/p in forbidden_varedit_object_types)
-		if( istype(O,p) )
+		if(istype(O,p) && holder.level <= 5 ) //SPIDERMAN DOES ALL WHAT HE WANTS
 			usr << "\red It is forbidden to edit this object's variables."
 			return
 
@@ -355,12 +355,12 @@ var/list/forbidden_varedit_object_types = list(
 			src << "A variable with this name ([param_var_name]) doesn't exist in this atom ([O])"
 			return
 
-		if (param_var_name == "holder" && holder.rank != "Game Master")
+		if (param_var_name == "holder" && holder.level <= 5)
 			src << "No. Stop being stupid."
 			return
 
-		if (locked.Find(param_var_name) && !(src.holder.rank in list("Game Master", "Game Admin")))
-			src << "Editing this variable requires you to be a game master or game admin."
+		if (locked.Find(param_var_name) && (holder.level <= 1))
+			src << "Editing this variable requires you to be an admin."
 			return
 
 		variable = param_var_name
@@ -419,10 +419,10 @@ var/list/forbidden_varedit_object_types = list(
 			return
 		var_value = O.vars[variable]
 
-		if (locked.Find(variable) && !(src.holder.rank in list("Game Master", "Game Admin")))
+		if (locked.Find(variable) && holder.level <= 1)
 			return
 
-		if (variable == "holder" && holder.rank != "Game Master") //Hotfix, a bit ugly but that exploit has been there for ages and now somebody just had to go and tell everyone of it bluh bluh - U
+		if (variable == "holder" && holder.level <= 5) //Hotfix, a bit ugly but that exploit has been there for ages and now somebody just had to go and tell everyone of it bluh bluh - U
 			return
 
 	if(!autodetect_class)

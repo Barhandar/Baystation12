@@ -161,7 +161,7 @@ dmm_suite/preloader
 	if(src.holder)
 		if(!src.mob)
 			return
-		if(src.holder.rank in list("Game Admin", "Game Master"))
+		if(src.holder.level >= 4)
 			var/file_name = "[dmm_map]"
 			var/file_extension = copytext(file_name,length(file_name)-2,0)
 			if(file_extension != "dmm")

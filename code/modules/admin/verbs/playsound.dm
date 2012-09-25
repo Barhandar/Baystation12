@@ -12,7 +12,7 @@
 	uploaded_sound.priority = 255
 	uploaded_sound.wait = 1
 
-	if(src.holder.rank == "Game Master" || src.holder.rank == "Game Admin" || src.holder.rank == "Badmin")
+	if(src.holder.level >= 4)
 		log_admin("[key_name(src)] played sound [S]")
 		message_admins("[key_name_admin(src)] played sound [S]", 1)
 		for(var/mob/M in world)
@@ -42,14 +42,14 @@
 		src << "Only administrators may use this command."
 		return
 
-	if(src.holder.rank == "Game Master" || src.holder.rank == "Game Admin")
+	if(src.holder.level >= 4)
 		log_admin("[key_name(src)] played a local sound [S]")
 		message_admins("[key_name_admin(src)] played a local sound [S]", 1)
 		playsound(get_turf(src.mob), S, 50, 0, 0)
 		return
 	//feedback_add_details("admin_verb","PLS") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-
+//BARHMARK
 /*
 /client/proc/cuban_pete()
 	set category = "Fun"

@@ -65,21 +65,15 @@
 				return
 
 /obj/effect/mark
-		var/mark = ""
-		icon = 'mark.dmi'
-		icon_state = "blank"
-		anchored = 1
-		layer = 99
-		mouse_opacity = 0
-		unacidable = 1//Just to be sure.
+	var/mark = ""
+	icon = 'mark.dmi'
+	icon_state = "blank"
+	anchored = 1
+	layer = 99
+	mouse_opacity = 0
+	unacidable = 1//Just to be sure.
 
-/obj/admins
-	name = "admins"
-	var/rank = null
-	var/owner = null
-	var/state = 1
-	//state = 1 for playing : default
-	//state = 2 for observing
+//ADMINS WAS HERE. FUCK YOU ORIGINAL AUTHOR, I DO NOT NEED A HUNDRED VARS IN IT.
 
 /obj/effect/beam
 	name = "beam"
@@ -916,7 +910,10 @@
 	density = 1
 	anchored = 1.0
 	layer = 2.8
-	var/dented = 0
+	var
+		buckled_mob = null
+		ties = null
+		dented = 0
 
 	New()
 		..()

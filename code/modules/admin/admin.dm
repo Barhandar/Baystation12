@@ -6,14 +6,14 @@ var/global/BSACooldown = 0
 /proc/message_admins(var/text, var/admin_ref = 0)
 	var/rendered = "<span class=\"admin\"><span class=\"prefix\">ADMIN LOG:</span> <span class=\"message\">[text]</span></span>"
 	for (var/mob/M in world)
-		if (M && M.client && M.client.holder && M.client.holder.level > -3 && M.client.holder.level != 0) //Lets not spam our retirees. Or moderators!
+		if (M && M.client && M.client.holder && M.client.holder.level >= 0 && !M.client.holder.spammage & ADMINLOGSPAM)
 			if (admin_ref)
 				M << dd_replaceText(rendered, "%admin_ref%", "\ref[M]")
 			else
 				M << rendered
 
 
-/obj/admins/Topic(href, href_list)
+/datum/admins/Topic(href, href_list)
 	..()
 	if (usr.client != src.owner)
 		world << "\blue [usr.key] has attempted to override the admin panel!"
@@ -21,7 +21,7 @@ var/global/BSACooldown = 0
 		return
 
 	if(href_list["call_shuttle"])
-		if (src.rank in list("Trial Admin", "Badmin", "Game Admin", "Game Master"))
+		if (src.level >= 1)
 			if( ticker.mode.name == "blob" )
 				alert("You can't call the shuttle during blob!")
 				return
@@ -55,7 +55,7 @@ var/global/BSACooldown = 0
 			return
 
 	if(href_list["edit_shuttle_time"])
-		if (src.rank in list("Badmin", "Game Admin", "Game Master"))
+		if (src.level >= 1)
 			emergency_shuttle.settimeleft( input("Enter new shuttle duration (seconds):","Edit Shuttle Timeleft", emergency_shuttle.timeleft() ) as num )
 			log_admin("[key_name(usr)] edited the Emergency Shuttle's timeleft to [emergency_shuttle.timeleft()]")
 			captain_announce("The emergency shuttle has been called. It will arrive in [round(emergency_shuttle.timeleft()/60)] minutes.")
@@ -553,7 +553,7 @@ var/global/BSACooldown = 0
 
 	//JOBBAN'S INNARDS
 	if(href_list["jobban3"])
-		if (src.rank in list( "Admin Candidate", "Temporary Admin", "Trial Admin", "Badmin", "Game Admin", "Game Master"  ))
+		if (src.level >= 0)
 			var/mob/M = locate(href_list["jobban4"])
 			if(!M)
 				alert("Mob no longer exists!")
@@ -668,7 +668,7 @@ var/global/BSACooldown = 0
 			return 0 //we didn't do anything!
 
 	if (href_list["boot2"])
-		if ((src.rank in list( "Moderator", "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 0)
 			var/mob/M = locate(href_list["boot2"])
 			if (ismob(M))
 				if ((M.client && M.client.holder && (M.client.holder.level >= src.level)))
@@ -686,7 +686,7 @@ var/global/BSACooldown = 0
 							src << "Looks like someone already beat you."
 
 	if (href_list["removejobban"])
-		if ((src.rank in list("Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 			var/t = href_list["removejobban"]
 			if(t)
 				log_admin("[key_name(usr)] removed [t]")
@@ -695,7 +695,7 @@ var/global/BSACooldown = 0
 				href_list["ban"] = 1 // lets it fall through and refresh
 
 	if (href_list["newban"])
-		if ((src.rank in list( "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.rank >= 0)
 			var/mob/M = locate(href_list["newban"])
 			if(!ismob(M)) return
 			if ((M.client && M.client.holder && (M.client.holder.level >= src.level)))
@@ -792,13 +792,13 @@ var/global/BSACooldown = 0
 		usr << browse(dat, "window=jobban2;size=600x250")
 		return
 	if(href_list["newjobban2"])
-		if ((src.rank in list(/*"Moderator", */"Administrator", "Badmin", "Tyrant"  )))
+		if (src.level >= 2)
 			var/mob/M = locate(href_list["jobban4"])
 			var/job = href_list["newjobban2"]
 			if(!ismob(M)) return
-			//if ((M.client && M.client.holder && (M.client.holder.level >= src.level)))
-			//	alert("You cannot perform this action. You must be of a higher administrative rank!")
-			//	return
+			if ((M.client && M.client.holder && (M.client.holder.level >= src.level)))
+				alert("You cannot perform this action. You must be of a higher administrative rank!")
+				return
 			switch(alert("Temporary Ban?",,"Yes","No", "Cancel"))
 				if("Yes")
 					var/mins = input(usr,"How long (in days)?","Ban time",7) as num
@@ -859,17 +859,8 @@ var/global/BSACooldown = 0
 
 	if(href_list["unjobbane"])
 		return
-/*
-	if (href_list["remove"])
-		if ((src.rank in list( "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
-			var/t = href_list["remove"]
-			if(t && isgoon(t))
-				log_admin("[key_name(usr)] removed [t] from the goonlist.")
-				message_admins("\blue [key_name_admin(usr)] removed [t] from the goonlist.")
-				remove_goon(t)
-*/
 	if (href_list["mute2"])
-		if ((src.rank in list(/* "Moderator", */"Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 0)
 			var/mob/M = locate(href_list["mute2"])
 			if (ismob(M))
 				if ((M.client && M.client.holder && (M.client.holder.level >= src.level)))
@@ -883,7 +874,7 @@ var/global/BSACooldown = 0
 				message_admins("\blue [key_name_admin(usr)] has [(M.client.muted ? "muted" : "voiced")] [key_name_admin(M)].", 1)
 				M << "You have been [(M.client.muted ? "muted" : "voiced")]. Please resolve this in adminhelp."
 	if (href_list["mute_complete"])
-		if ((src.rank in list(/* "Moderator", */"Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 0)
 			var/mob/M = locate(href_list["mute_complete"])
 			if (ismob(M))
 				if ((M.client && M.client.holder && (M.client.holder.level >= src.level)))
@@ -898,7 +889,7 @@ var/global/BSACooldown = 0
 				M << "You have been [(M.client.muted_complete ? "completely muted" : "voiced (complete)")]. You are unable to speak."
 
 	if (href_list["c_mode"])
-		if ((src.rank in list( "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 0)
 			if (ticker && ticker.mode)
 				return alert(usr, "The game has already started.", null, null, null, null)
 			var/dat = {"<B>What mode do you wish to play?</B><HR>"}
@@ -910,7 +901,7 @@ var/global/BSACooldown = 0
 			usr << browse(dat, "window=c_mode")
 
 	if (href_list["f_secret"])
-		if ((src.rank in list( "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 0)
 			if (ticker && ticker.mode)
 				return alert(usr, "The game has already started.", null, null, null, null)
 			if (master_mode != "secret")
@@ -923,7 +914,7 @@ var/global/BSACooldown = 0
 			usr << browse(dat, "window=f_secret")
 
 	if (href_list["c_mode2"])
-		if ((src.rank in list( "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 0)
 			if (ticker && ticker.mode)
 				return alert(usr, "The game has already started.", null, null, null, null)
 			master_mode = href_list["c_mode2"]
@@ -935,7 +926,7 @@ var/global/BSACooldown = 0
 			.(href, list("c_mode"=1))
 
 	if (href_list["f_secret2"])
-		if ((src.rank in list( "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 			if (ticker && ticker.mode)
 				return alert(usr, "The game has already started.", null, null, null, null)
 			if (master_mode != "secret")
@@ -947,7 +938,7 @@ var/global/BSACooldown = 0
 			.(href, list("f_secret"=1))
 
 	if (href_list["monkeyone"])
-		if ((src.rank in list( "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 			var/mob/M = locate(href_list["monkeyone"])
 			if(!ismob(M))
 				return
@@ -961,7 +952,7 @@ var/global/BSACooldown = 0
 				return
 
 	if (href_list["corgione"])
-		if ((src.rank in list( "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 			var/mob/M = locate(href_list["corgione"])
 			if(!ismob(M))
 				return
@@ -975,7 +966,7 @@ var/global/BSACooldown = 0
 				return
 
 	if (href_list["forcespeech"])
-		if ((src.rank in list( "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 			var/mob/M = locate(href_list["forcespeech"])
 			if (ismob(M))
 				var/speech = copytext(sanitize(input("What will [key_name(M)] say?.", "Force speech", "")),1,MAX_MESSAGE_LEN)
@@ -989,7 +980,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["sendtoprison"])
-		if ((src.rank in list(/* "Moderator", */"Admin Candidate", "Temporary Admin", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 
 			var/confirm = alert(usr, "Send to admin prison for the round?", "Message", "Yes", "No")
 			if(confirm != "Yes")
@@ -1063,7 +1054,7 @@ var/global/BSACooldown = 0
 */
 
 	if (href_list["tdome1"])
-		if ((src.rank in list( "Admin Candidate", "Temporary Admin", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 
 			var/confirm = alert(usr, "Confirm?", "Message", "Yes", "No")
 			if(confirm != "Yes")
@@ -1094,7 +1085,7 @@ var/global/BSACooldown = 0
 				message_admins("[key_name_admin(usr)] has sent [key_name_admin(M)] to the thunderdome. (Team 1)", 1)
 
 	if (href_list["tdome2"])
-		if ((src.rank in list( "Admin Candidate", "Temporary Admin", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 
 			var/confirm = alert(usr, "Confirm?", "Message", "Yes", "No")
 			if(confirm != "Yes")
@@ -1125,7 +1116,7 @@ var/global/BSACooldown = 0
 				message_admins("[key_name_admin(usr)] has sent [key_name_admin(M)] to the thunderdome. (Team 2)", 1)
 
 	if (href_list["tdomeadmin"])
-		if ((src.rank in list( "Admin Candidate", "Temporary Admin", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 
 			var/confirm = alert(usr, "Confirm?", "Message", "Yes", "No")
 			if(confirm != "Yes")
@@ -1145,7 +1136,7 @@ var/global/BSACooldown = 0
 				message_admins("[key_name_admin(usr)] has sent [key_name_admin(M)] to the thunderdome. (Admin.)", 1)
 
 	if (href_list["tdomeobserve"])
-		if ((src.rank in list( "Admin Candidate", "Temporary Admin", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 			var/mob/M = locate(href_list["tdomeobserve"])
 			if (ismob(M))
 				if(istype(M, /mob/living/silicon/ai))
@@ -1185,13 +1176,13 @@ var/global/BSACooldown = 0
 //				M.client << text("You have been authorized by []", usr.key)
 
 	if (href_list["revive"])
-		if ((src.rank in list( "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 3)
 			var/mob/living/M = locate(href_list["revive"])
 			if (isliving(M))
 				if(config.allow_admin_rev)
 					M.revive()
 					message_admins("\red Admin [key_name_admin(usr)] healed / revived [key_name_admin(M)]!", 1)
-					log_admin("[key_name(usr)] healed / Rrvived [key_name(M)]")
+					log_admin("[key_name(usr)] healed / Revived [key_name(M)]")
 					return
 				else
 					alert("Admin revive disabled")
@@ -1200,7 +1191,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["makeai"]) //Yes, im fucking lazy, so what? it works ... hopefully
-		if (src.level>=3)
+		if (src.level >= 3)
 			var/mob/M = locate(href_list["makeai"])
 			if(istype(M, /mob/living/carbon/human))
 				var/mob/living/carbon/human/H = M
@@ -1227,7 +1218,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["makeaisilent"])
-		if (src.level>=3)
+		if (src.level >= 3)
 			var/mob/M = locate(href_list["makeaisilent"])
 			if(istype(M, /mob/living/carbon/human))
 				var/mob/living/carbon/human/H = M
@@ -1242,7 +1233,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["makealien"])
-		if (src.level>=3)
+		if (src.level >= 3)
 			var/mob/M = locate(href_list["makealien"])
 			if(istype(M, /mob/living/carbon/human))
 				usr.client.cmd_admin_alienize(M)
@@ -1254,7 +1245,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["makemetroid"])
-		if (src.level>=3)
+		if (src.level >= 3)
 			var/mob/M = locate(href_list["makemetroid"])
 			if(istype(M, /mob/living/carbon/human))
 				usr.client.cmd_admin_metroidize(M)
@@ -1266,7 +1257,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["makerobot"])
-		if (src.level>=3)
+		if (src.level >= 3)
 			var/mob/M = locate(href_list["makerobot"])
 			if(istype(M, /mob/living/carbon/human))
 				usr.client.cmd_admin_robotize(M)
@@ -1278,7 +1269,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["granttaj"])
-		if (src.level>=5)
+		if (src.level >= 3)
 			var/mob/M = locate(href_list["granttaj"])
 			for (var/s in alien_whitelist)
 				if(findtext(s,"[M.ckey] - Tajaran"))
@@ -1291,7 +1282,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["grantsog"])
-		if (src.level>=5)
+		if (src.level >= 3)
 			var/mob/M = locate(href_list["grantsog"])
 			for (var/s in alien_whitelist)
 				if(findtext(s,"[M.ckey] - Soghun"))
@@ -1304,7 +1295,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["grantskrell"])
-		if (src.level>=5)
+		if (src.level >= 3)
 			var/mob/M = locate(href_list["grantskrell"])
 			for (var/s in alien_whitelist)
 				if(findtext(s,"[M.ckey] - Skrell"))
@@ -1355,7 +1346,7 @@ var/global/BSACooldown = 0
 // Now isn't that much better? IT IS NOW A PROC, i.e. kinda like a big panel like unstable
 
 	if (href_list["adminplayeropts"])
-		if(rank in list("Admin Observer", "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"))
+		if(src.level >= 1)
 			var/mob/M = locate(href_list["adminplayeropts"])
 			show_player_panel(M)
 		else
@@ -1366,7 +1357,7 @@ var/global/BSACooldown = 0
 		show_player_info(key)
 
 	if (href_list["adminplayervars"])
-		if(rank in list("Admin Observer", "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"))
+		if(src.level >= 1)
 			var/mob/M = locate(href_list["adminplayervars"])
 			if(src && src.owner)
 				if(istype(src.owner,/client))
@@ -1381,7 +1372,7 @@ var/global/BSACooldown = 0
 			alert("You cannot perform this action. You must be of a higher administrative rank!")
 
 	if (href_list["adminplayersubtlemessage"])
-		if(rank in list("Admin Observer", "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"))
+		if(src.level >= 1)
 			var/mob/M = locate(href_list["adminplayersubtlemessage"])
 			if(src && src.owner)
 				if(istype(src.owner,/client))
@@ -1396,7 +1387,7 @@ var/global/BSACooldown = 0
 			alert("You cannot perform this action. You must be of a higher administrative rank!")
 
 	if (href_list["adminplayerobservejump"])
-		if(rank in list("Admin Observer", "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"))
+		if(src.level >= 1)
 			var/mob/M = locate(href_list["adminplayerobservejump"])
 			if(src && src.owner)
 				if(istype(src.owner,/client))
@@ -1450,26 +1441,27 @@ var/global/BSACooldown = 0
 			src.owner << "(<a href='?src=\ref[usr];priv_msg=\ref[M]'>PM</a>) (<A HREF='?src=\ref[src];adminplayeropts=\ref[M]'>PP</A>) (<A HREF='?src=\ref[src];adminplayervars=\ref[M]'>VV</A>) (<A HREF='?src=\ref[src];adminplayersubtlemessage=\ref[M]'>SM</A>) (<A HREF='?src=\ref[src];adminplayerobservejump=\ref[M]'>JMP</A>) (<A HREF='?src=\ref[src];secretsadmin=check_antagonist'>CA</A>)"
 
 	if (href_list["adminspawncookie"])
-		var/mob/M = locate(href_list["adminspawncookie"])
-		if(M && ishuman(M))
-			var/mob/living/carbon/human/H = M
-			H.equip_if_possible( new /obj/item/weapon/reagent_containers/food/snacks/cookie(H), H.slot_l_hand )
-			if(!(istype(H.l_hand,/obj/item/weapon/reagent_containers/food/snacks/cookie)))
-				H.equip_if_possible( new /obj/item/weapon/reagent_containers/food/snacks/cookie(H), H.slot_r_hand )
-				if(!(istype(H.r_hand,/obj/item/weapon/reagent_containers/food/snacks/cookie)))
-					log_admin("[key_name(H)] has their hands full, so they did not receive their cookie, spawned by [key_name(src.owner)].")
-					message_admins("[key_name(H)] has their hands full, so they did not receive their cookie, spawned by [key_name(src.owner)].")
-					return
-			log_admin("[key_name(H)] got their cookie, spawned by [key_name(src.owner)]")
-			message_admins("[key_name(H)] got their cookie, spawned by [key_name(src.owner)]")
-			feedback_inc("admin_cookies_spawned",1)
-			H << "\blue Your prayers have been answered!! You received the <b>best cookie</b>!"
-		else
-			src << "\blue The person who prayed is not a human. Cookies cannot be spawned."
+		if(src.level >= 4)
+			var/mob/M = locate(href_list["adminspawncookie"])
+			if(M && ishuman(M))
+				var/mob/living/carbon/human/H = M
+				H.equip_if_possible( new /obj/item/weapon/reagent_containers/food/snacks/cookie(H), H.slot_l_hand )
+				if(!(istype(H.l_hand,/obj/item/weapon/reagent_containers/food/snacks/cookie)))
+					H.equip_if_possible( new /obj/item/weapon/reagent_containers/food/snacks/cookie(H), H.slot_r_hand )
+					if(!(istype(H.r_hand,/obj/item/weapon/reagent_containers/food/snacks/cookie)))
+						log_admin("[key_name(H)] has their hands full, so they did not receive their cookie, spawned by [key_name(src.owner)].")
+						message_admins("[key_name(H)] has their hands full, so they did not receive their cookie, spawned by [key_name(src.owner)].")
+						return
+				log_admin("[key_name(H)] got their cookie, spawned by [key_name(src.owner)]")
+				message_admins("[key_name(H)] got their cookie, spawned by [key_name(src.owner)]")
+				feedback_inc("admin_cookies_spawned",1)
+				H << "\blue Your prayers have been answered!! You received the <b>best cookie</b>!"
+			else
+				src << "\blue The person who prayed is not a human. Cookies cannot be spawned."
 
 
 	if (href_list["traitor_panel_pp"])
-		if(rank in list("Admin Observer", "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"))
+		if(src.level >= 1)
 			var/mob/M = locate(href_list["traitor_panel_pp"])
 			if(isnull(M))
 				usr << "Mob doesn't seem to exist."
@@ -1567,7 +1559,7 @@ var/global/BSACooldown = 0
 		return
 
 	if (href_list["jumpto"])
-		if(rank in list("Badmin", "Game Admin", "Game Master"))
+		if(src.level >= 0)
 			var/mob/M = locate(href_list["jumpto"])
 			usr.client.jumptomob(M)
 		else
@@ -1575,7 +1567,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["getmob"])
-		if(rank in list( "Trial Admin", "Badmin", "Game Admin", "Game Master"))
+		if(src.level >= 1)
 
 			var/confirm = alert(usr, "Confirm?", "Message", "Yes", "No")
 			if(confirm != "Yes")
@@ -1588,7 +1580,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["sendmob"])
-		if(rank in list( "Trial Admin", "Badmin", "Game Admin", "Game Master"))
+		if(src.level >= 1)
 			var/mob/M = locate(href_list["sendmob"])
 			usr.client.sendmob(M)
 		else
@@ -1596,7 +1588,7 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["narrateto"])
-		if(rank in list("Game Admin", "Game Master"))
+		if(src.level >= 3)
 			var/mob/M = locate(href_list["narrateto"])
 			usr.client.cmd_admin_direct_narrate(M)
 		else
@@ -1604,8 +1596,12 @@ var/global/BSACooldown = 0
 			return
 
 	if (href_list["subtlemessage"])
-		var/mob/M = locate(href_list["subtlemessage"])
-		usr.client.cmd_admin_subtle_message(M)
+		if(src.level >= 3)
+			var/mob/M = locate(href_list["subtlemessage"])
+			usr.client.cmd_admin_subtle_message(M)
+		else
+			alert("You cannot perform this action. You must be of a higher administrative rank!")
+			return
 
 	if (href_list["traitor"])
 		if(!ticker || !ticker.mode)
@@ -1625,26 +1621,26 @@ var/global/BSACooldown = 0
 
 
 	if (href_list["create_object"])
-		if (src.rank in list("Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"))
+		if (src.level >= 4)
 			return create_object(usr)
 		else
 			alert("You are not a high enough administrator! Sorry!!!!")
 
 	if (href_list["quick_create_object"])
-		if (src.rank in list("Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"))
+		if (src.level >= 4)
 			return quick_create_object(usr)
 		else
 			alert("You are not a high enough administrator! Sorry!!!!")
 
 
 	if (href_list["create_turf"])
-		if (src.rank in list("Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"))
+		if (src.level >= 4)
 			return create_turf(usr)
 		else
 			alert("You are not a high enough administrator! Sorry!!!!")
 
 	if (href_list["create_mob"])
-		if (src.rank in list("Badmin", "Game Admin", "Game Master"))
+		if (src.level >= 4)
 			return create_mob(usr)
 		else
 			alert("You are not a high enough administrator! Sorry!!!!")
@@ -1658,38 +1654,19 @@ var/global/BSACooldown = 0
 		voteres()
 
 	if (href_list["prom_demot"])
-		if ((src.rank in list("Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 			var/client/C = locate(href_list["prom_demot"])
 			if(C.holder && (C.holder.level >= src.level))
-				alert("This cannot be done as [C] is a [C.holder.rank]")
+				alert("This cannot be done as [C] is a [C.holder.rank] and [C.holder.level], which is higher than you.")
 				return
 			var/dat = "[C] is a [C.holder ? "[C.holder.rank]" : "non-admin"]<br><br>Change [C]'s rank?<br>"
-			if(src.level == 6)
-			//host
-				dat += {"
-				<A href='?src=\ref[src];chgadlvl=Game Admin;client4ad=\ref[C]'>Game Admin</A> //coder<BR>
-				<A href='?src=\ref[src];chgadlvl=Badmin;client4ad=\ref[C]'>Badmin</A> // Shit Guy<BR>
-				<A href='?src=\ref[src];chgadlvl=Trial Admin;client4ad=\ref[C]'>Trial Admin</A> // Primary Administrator<BR>
-				<A href='?src=\ref[src];chgadlvl=Admin Candidate;client4ad=\ref[C]'>Admin Candidate</A> // // Administrator<BR>
-				<A href='?src=\ref[src];chgadlvl=Temporary Admin;client4ad=\ref[C]'>Temporary Admin</A> // Secondary Admin<BR>
-				<A href='?src=\ref[src];chgadlvl=Moderator;client4ad=\ref[C]'>Moderator</A> // Moderator<BR>
-				<A href='?src=\ref[src];chgadlvl=Admin Observer;client4ad=\ref[C]'>Admin Observer</A> // Filthy Xeno<BR>
-				<A href='?src=\ref[src];chgadlvl=Retired Admin;client4ad=\ref[C]'>Retired Admin</A> // Retired Administrator<BR>
-				<A href='?src=\ref[src];chgadlvl=Remove;client4ad=\ref[C]'>Remove Admin</A><BR>"}
-			else if(src.level == 5)
-			//coder
-				dat += {"
-				<A href='?src=\ref[src];chgadlvl=Badmin;client4ad=\ref[C]'>Badmin</A> // Shit Guy<BR>
-				<A href='?src=\ref[src];chgadlvl=Trial Admin;client4ad=\ref[C]'>Trial Admin</A> // Primary Administrator<BR>
-				<A href='?src=\ref[src];chgadlvl=Admin Candidate;client4ad=\ref[C]'>Admin Candidate</A> // // Administrator<BR>
-				<A href='?src=\ref[src];chgadlvl=Temporary Admin;client4ad=\ref[C]'>Temporary Admin</A> // Secondary Admin<BR>
-				<A href='?src=\ref[src];chgadlvl=Moderator;client4ad=\ref[C]'>Moderator</A> // Moderator<BR>
-				<A href='?src=\ref[src];chgadlvl=Admin Observer;client4ad=\ref[C]'>Admin Observer</A> // Filthy Xeno<BR>
-				<A href='?src=\ref[src];chgadlvl=Retired Admin;client4ad=\ref[C]'>Retired Admin</A> // Retired Administrator<BR>
-				<A href='?src=\ref[src];chgadlvl=Remove;client4ad=\ref[C]'>Remove Admin</A><BR>"}
-			else
-				alert("Not a high enough level admin, sorry.")
-				return
+			for(var/i; i in list(-1,9); i++)
+				var/R = get_rank_from_level(i)
+				if(R)
+					dat += {"<A href='?src=\ref[src];chgadlvl=[R];client4ad=\ref[C]'>[R](</A><BR>"}
+				else continue
+			dat += {"<A href='?src=\ref[src];chgadlvl=Remove;client4ad=\ref[C]'>Remove Access</A><BR>"}
+
 			usr << browse(dat, "window=prom_demot;size=480x300")
 
 	if (href_list["chgadlvl"])
@@ -1711,8 +1688,8 @@ var/global/BSACooldown = 0
 
 
 	if (href_list["object_list"])
-		if (src.rank in list("Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"))
-			if (config.allow_admin_spawning && ((src.state == 2) || (src.rank in list("Badmin", "Game Admin", "Game Master"))))
+		if (src.level >= 4)
+			if (config.allow_admin_spawning)
 				var/atom/loc = usr.loc
 
 				var/dirty_paths
@@ -1729,15 +1706,15 @@ var/global/BSACooldown = 0
 						removed_paths += dirty_path
 					else if (!ispath(path, /obj) && !ispath(path, /turf) && !ispath(path, /mob))
 						removed_paths += dirty_path
-					else if (ispath(path, /obj/item/weapon/gun/energy/pulse_rifle) && !(src.rank in list("Game Admin", "Game Master")))
-						removed_paths += dirty_path
+//					else if (ispath(path, /obj/item/weapon/gun/energy/pulse_rifle) && !(src.rank in list("Game Admin", "Game Master")))
+//						removed_paths += dirty_path
 					else if (ispath(path, /obj/item/weapon/melee/energy/blade))//Not an item one should be able to spawn./N
 						removed_paths += dirty_path
-					else if (ispath(path, /obj/effect/bhole) && !(src.rank in list("Game Admin", "Game Master")))
-						removed_paths += dirty_path
-					else if (ispath(path, /mob) && !(src.rank in list("Badmin", "Game Admin", "Game Master")))
-						removed_paths += dirty_path
-
+//					else if (ispath(path, /obj/effect/bhole) && !(src.rank in list("Game Admin", "Game Master")))
+//						removed_paths += dirty_path
+//					else if (ispath(path, /mob) && !(src.rank in list("Badmin", "Game Admin", "Game Master")))
+//						removed_paths += dirty_path
+//					SORRY GUISE, BUT IT'S KINDA IRRELEVANT WHAT WITH ALL SPAWN BEING AT DEBUG LEVEL
 					else
 						paths += path
 
@@ -1831,7 +1808,7 @@ var/global/BSACooldown = 0
 				return
 
 	if (href_list["secretsfun"])
-		if ((src.rank in list( "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 3)
 			var/ok = 0
 			switch(href_list["secretsfun"])
 				if("sec_clothes")
@@ -1973,7 +1950,7 @@ var/global/BSACooldown = 0
 							H.loc = pick(prisonsecuritywarp)
 						prisonwarped += H
 				if("traitor_all")
-					if ((src.rank in list( "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+					if (src.level >= 3)
 						if(!ticker)
 							alert("The game hasn't started yet!")
 							return
@@ -2009,7 +1986,7 @@ var/global/BSACooldown = 0
 					else
 						alert("You're not of a high enough rank to do this")
 				if("moveminingshuttle")
-					if ((src.rank in list( "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+					if (src.level >= 1)
 						if(mining_shuttle_moving)
 							return
 						//feedback_inc("admin_secrets_fun_used",1)
@@ -2020,7 +1997,7 @@ var/global/BSACooldown = 0
 					else
 						alert("You're not of a high enough rank to do this")
 				if("moveadminshuttle")
-					if ((src.rank in list( "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+					if (src.level >= 1)
 						//feedback_inc("admin_secrets_fun_used",1)
 						//feedback_add_details("admin_secrets_fun_used","ShA")
 						move_admin_shuttle()
@@ -2029,7 +2006,7 @@ var/global/BSACooldown = 0
 					else
 						alert("You're not of a high enough rank to do this")
 				if("moveferry")
-					if ((src.rank in list( "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+					if (src.level >= 1)
 						//feedback_inc("admin_secrets_fun_used",1)
 						//feedback_add_details("admin_secrets_fun_used","ShF")
 						move_ferry()
@@ -2038,7 +2015,7 @@ var/global/BSACooldown = 0
 					else
 						alert("You're not of a high enough rank to do this")
 				if("movealienship")
-					if ((src.rank in list( "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+					if (src.level >= 1)
 						//feedback_inc("admin_secrets_fun_used",1)
 						//feedback_add_details("admin_secrets_fun_used","ShX")
 						move_alien_ship()
@@ -2047,7 +2024,7 @@ var/global/BSACooldown = 0
 					else
 						alert("You're not of a high enough rank to do this")
 				if("togglebombcap")
-					if (src.rank in list( "Game Admin", "Game Master"  ))
+					if (src.level >= 4)
 						//feedback_inc("admin_secrets_fun_used",1)
 						//feedback_add_details("admin_secrets_fun_used","BC")
 						switch(MAX_EXPLOSION_RANGE)
@@ -2147,7 +2124,7 @@ var/global/BSACooldown = 0
 				if("wave")
 					//feedback_inc("admin_secrets_fun_used",1)
 					//feedback_add_details("admin_secrets_fun_used","MW")
-					if ((src.rank in list("Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+					if (src.level >= 1)
 						meteor_wave()
 						message_admins("[key_name_admin(usr)] has spawned meteors", 1)
 						command_alert("Meteors have been detected on collision course with the station.", "Meteor Alert")
@@ -2249,7 +2226,7 @@ var/global/BSACooldown = 0
 				if("trigger_armed_response_team")
 					trigger_armed_response_team(1)
 				if("retardify")
-					if (src.rank in list("Badmin", "Game Admin", "Game Master"))
+					if (src.level >= 5)
 						//feedback_inc("admin_secrets_fun_used",1)
 						//feedback_add_details("admin_secrets_fun_used","RET")
 						for(var/mob/living/carbon/human/H in world)
@@ -2261,7 +2238,7 @@ var/global/BSACooldown = 0
 						alert("You cannot perform this action. You must be of a higher administrative rank!")
 						return
 				if("fakeguns")
-					if (src.rank in list("Badmin", "Game Admin", "Game Master"))
+					if (src.level >= 5)
 						//feedback_inc("admin_secrets_fun_used",1)
 						//feedback_add_details("admin_secrets_fun_used","FG")
 						for(var/obj/item/W in world)
@@ -2281,7 +2258,7 @@ var/global/BSACooldown = 0
 						alert("You cannot perform this action. You must be of a higher administrative rank!")
 						return*/
 				if("dorf")
-					if (src.rank in list("Badmin","Game Admin", "Game Master"))
+					if (src.level >= 5)
 						//feedback_inc("admin_secrets_fun_used",1)
 						//feedback_add_details("admin_secrets_fun_used","DF")
 						for(var/mob/living/carbon/human/B in world)
@@ -2292,7 +2269,7 @@ var/global/BSACooldown = 0
 						alert("You cannot perform this action. You must be of a higher administrative rank!")
 						return
 				if("ionstorm")
-					if (src.rank in list("Badmin","Game Admin", "Game Master"))
+					if (src.level >= 5)
 						//feedback_inc("admin_secrets_fun_used",1)
 						//feedback_add_details("admin_secrets_fun_used","I")
 						Force_Event(/datum/event/ionstorm)
@@ -2316,7 +2293,7 @@ var/global/BSACooldown = 0
 		return
 
 	if (href_list["secretsadmin"])
-		if ((src.rank in list(/* "Moderator", */"Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master"  )))
+		if (src.level >= 1)
 			var/ok = 0
 			switch(href_list["secretsadmin"])
 				if("clear_bombs")
@@ -2396,7 +2373,7 @@ var/global/BSACooldown = 0
 					world << text("<B>A secret has been activated by []!</B>", usr.key)
 		return
 	if (href_list["secretscoder"])
-		if ((src.rank in list( "Badmin", "Game Admin", "Game Master" )))
+		if (src.level >= 4)
 			switch(href_list["secretscoder"])
 				if("spawn_objects")
 					var/dat = "<B>Admin Log<HR></B>"
@@ -2424,7 +2401,7 @@ var/global/BSACooldown = 0
 		return
 
 	if(href_list["vsc"])
-		if ((src.rank in list( "Moderator", "Temporary Admin", "Admin Candidate", "Trial Admin", "Badmin", "Game Admin", "Game Master" )))
+		if (src.level >= 0)
 			if(href_list["vsc"] == "airflow")
 				vsc.ChangeSettingsDialog(usr,vsc.settings)
 			if(href_list["vsc"] == "plasma")
@@ -2477,7 +2454,7 @@ var/global/BSACooldown = 0
 
 ///////////////////////////////////////////////////////////////////////////////////////////////Panels
 
-/obj/admins/proc/show_player_panel(var/mob/M in world)
+/datum/admins/proc/show_player_panel(var/mob/M in world)
 	set category = "Admin"
 	set name = "Show Player Panel"
 	set desc="Edit player (respawn, ban, heal, etc)"
@@ -2485,9 +2462,9 @@ var/global/BSACooldown = 0
 	if(!M)
 		usr << "You seem to be selecting a mob that doesn't exist anymore."
 		return
-	if (!istype(src,/obj/admins))
+	if (!istype(src,/datum/admins))
 		src = usr.client.holder
-	if (!istype(src,/obj/admins))
+	if (!istype(src,/datum/admins))
 		usr << "Error: you are not an admin!"
 		return
 
@@ -2618,19 +2595,19 @@ var/global/BSACooldown = 0
 /datum/player_info/var/content // text content of the information
 /datum/player_info/var/timestamp // Because this is bloody annoying
 
-/obj/admins/proc/player_has_info(var/key as text)
+/datum/admins/proc/player_has_info(var/key as text)
 	var/savefile/info = new("data/player_saves/[copytext(key, 1, 2)]/[key]/info.sav")
 	var/list/infos
 	info >> infos
 	if(!infos || !infos.len) return 0
 	else return 1
 
-/obj/admins/proc/show_player_info(var/key as text)
+/datum/admins/proc/show_player_info(var/key as text)
 	set category = "Admin"
 	set name = "Show Player Info"
-	if (!istype(src,/obj/admins))
+	if (!istype(src,/datum/admins))
 		src = usr.client.holder
-	if (!istype(src,/obj/admins))
+	if (!istype(src,/datum/admins))
 		usr << "Error: you are not an admin!"
 		return
 	var/dat = "<html><head><title>Info on [key]</title></head>"
@@ -2664,13 +2641,13 @@ var/global/BSACooldown = 0
 	dat += "</body></html>"
 	usr << browse(dat, "window=adminplayerinfo;size=480x480")
 
-/obj/admins/proc/show_skills(var/mob/living/carbon/human/M as mob in world)
+/datum/admins/proc/show_skills(var/mob/living/carbon/human/M as mob in world)
 	set category = "Admin"
 	set name = "Show Skills"
 
-	if (!istype(src,/obj/admins))
+	if (!istype(src,/datum/admins))
 		src = usr.client.holder
-	if (!istype(src,/obj/admins))
+	if (!istype(src,/datum/admins))
 		usr << "Error: you are not an admin!"
 		return
 
@@ -2691,20 +2668,18 @@ var/global/BSACooldown = 0
 		H.update_body()
 		H.update_clothing()
 		H.update_face()
+//REWRITE THIS SHIT DAMMIT
+/datum/admins/proc/Jobbans()
+	var/dat = "<B>Job Bans!</B><HR><table>"
+	for(var/t in jobban_keylist)
+		var/r = t
+		if( findtext(r,"##") )
+			r = copytext( r, 1, findtext(r,"##") )//removes the description
+		dat += text("<tr><td>[t] (<A href='?src=\ref[src];removejobban=[r]'>unban</A>)</td></tr>")
+	dat += "</table>"
+	usr << browse(dat, "window=ban;size=400x400")
 
-/obj/admins/proc/Jobbans()
-
-	if ((src.rank in list( "Game Admin", "Game Master"  )))
-		var/dat = "<B>Job Bans!</B><HR><table>"
-		for(var/t in jobban_keylist)
-			var/r = t
-			if( findtext(r,"##") )
-				r = copytext( r, 1, findtext(r,"##") )//removes the description
-			dat += text("<tr><td>[t] (<A href='?src=\ref[src];removejobban=[r]'>unban</A>)</td></tr>")
-		dat += "</table>"
-		usr << browse(dat, "window=ban;size=400x400")
-
-/obj/admins/proc/PlayerNotes()
+/datum/admins/proc/PlayerNotes()
 	var/dat = "<B>Player notes</B><HR><table>"
 
 	var/savefile/S=new("data/player_notes.sav")
@@ -2719,86 +2694,33 @@ var/global/BSACooldown = 0
 	dat += "</table>"
 	usr << browse(dat, "window=player_notes;size=400x400")
 
-/obj/admins/proc/Game()
+/datum/admins/proc/Game()
 
 	var/dat
-	var/lvl = 0
-	switch(src.rank)
-		if("Moderator")
-			lvl = 1
-		if("Temporary Admin")
-			lvl = 2
-		if("Admin Candidate")
-			lvl = 3
-		if("Trial Admin")
-			lvl = 4
-		if("Badmin")
-			lvl = 5
-		if("Game Admin")
-			lvl = 6
-		if("Game Master")
-			lvl = 7
-
 	dat += "<center><B>Game Panel</B></center><hr>\n"
 
-	if(lvl > 0)
-
-//			if(lvl >= 2 )
+	if(src.level >= 1)
 		dat += "<A href='?src=\ref[src];c_mode=1'>Change Game Mode</A><br>"
 
-	if(lvl > 0 && master_mode == "secret")
+	if(src.level >= 2 && master_mode == "secret")
 		dat += "<A href='?src=\ref[src];f_secret=1'>(Force Secret Mode)</A><br>"
 
 	dat += "<BR>"
 
-	if(lvl >= 3 )
+	if(level >= 4)
 		dat += "<A href='?src=\ref[src];create_object=1'>Create Object</A><br>"
 		dat += "<A href='?src=\ref[src];quick_create_object=1'>Quick Create Object</A><br>"
 		dat += "<A href='?src=\ref[src];create_turf=1'>Create Turf</A><br>"
-	if(lvl >= 5)
 		dat += "<A href='?src=\ref[src];create_mob=1'>Create Mob</A><br>"
-	if(lvl >= 3 )
 		dat += "<br><A href='?src=\ref[src];vsc=airflow'>Edit Airflow Settings</A><br>"
 		dat += "<A href='?src=\ref[src];vsc=plasma'>Edit Plasma Settings</A><br>"
 		dat += "<A href='?src=\ref[src];vsc=default'>Choose a default ZAS setting</A><br>"
-//			if(lvl == 6 )
 	usr << browse(dat, "window=admin2;size=210x280")
 	return
-/*
-/obj/admins/proc/goons()
-	var/dat = "<HR><B>GOOOOOOONS</B><HR><table cellspacing=5><tr><th>Key</th><th>SA Username</th></tr>"
-	for(var/t in goon_keylist)
-		dat += text("<tr><td><A href='?src=\ref[src];remove=[ckey(t)]'><B>[t]</B></A></td><td>[goon_keylist[ckey(t)]]</td></tr>")
-	dat += "</table>"
-	usr << browse(dat, "window=ban;size=300x400")
 
-/obj/admins/proc/beta_testers()
-	var/dat = "<HR><B>Beta testers</B><HR><table cellspacing=5><tr><th>Key</th></tr>"
-	for(var/t in beta_tester_keylist)
-		dat += text("<tr><td>[t]</td></tr>")
-	dat += "</table>"
-	usr << browse(dat, "window=ban;size=300x400")
-*/
-/obj/admins/proc/Secrets()
+/datum/admins/proc/Secrets()
 	if (!usr.client.holder)
 		return
-
-	var/lvl = 0
-	switch(src.rank)
-		if("Moderator")
-			lvl = 1
-		if("Temporary Admin")
-			lvl = 2
-		if("Admin Candidate")
-			lvl = 3
-		if("Trial Admin")
-			lvl = 4
-		if("Badmin")
-			lvl = 5
-		if("Game Admin")
-			lvl = 6
-		if("Game Master")
-			lvl = 7
 
 	var/dat = {"
 <B>Choose a secret, any secret at all.</B><HR>
@@ -2815,7 +2737,7 @@ var/global/BSACooldown = 0
 <A href='?src=\ref[src];secretsadmin=DNA'>List DNA (Blood)</A><BR>
 <A href='?src=\ref[src];secretsadmin=fingerprints'>List Fingerprints</A><BR><BR>
 <BR>"}
-	if(lvl > 2)
+	if(level >= 3)
 		dat += {"
 <B>'Random' Events</B><BR>
 <BR>
@@ -2860,14 +2782,14 @@ var/global/BSACooldown = 0
 <A href='?src=\ref[src];secretsfun=electric'>Trigger Electrical Storm</A><BR>"}
 //<A href='?src=\ref[src];secretsfun=shockwave'>Station Shockwave</A><BR>
 
-	if(lvl >= 6)
+	if(level >= 4)
 		dat += {"
 <A href='?src=\ref[src];secretsfun=togglebombcap'>Toggle bomb cap</A><BR>
 		"}
 
 	dat += "<BR>"
 
-	if(lvl >= 5)
+	if(level >= 4)
 		dat += {"
 <B>Security Level Elevated</B><BR>
 <BR>
@@ -2884,30 +2806,14 @@ var/global/BSACooldown = 0
 	usr << browse(dat, "window=secrets")
 	return
 
-/obj/admins/proc/Voting()
+/datum/admins/proc/Voting()
 
 	var/dat
-	var/lvl = 0
-	switch(src.rank)
-		if("Moderator")
-			lvl = 1
-		if("Temporary Admin")
-			lvl = 2
-		if("Admin Candidate")
-			lvl = 3
-		if("Trial Admin")
-			lvl = 4
-		if("Badmin")
-			lvl = 5
-		if("Game Admin")
-			lvl = 6
-		if("Game Master")
-			lvl = 7
 
 
 	dat += "<center><B>Voting</B></center><hr>\n"
 
-	if(lvl > 0)
+	if(level > 0)
 		dat += {"
 <A href='?src=\ref[src];votekill=1'>Abort Vote</A><br>
 <A href='?src=\ref[src];vmode=1'>Start Vote</A><br>
@@ -2923,7 +2829,7 @@ var/global/BSACooldown = 0
 //i.e. buttons/verbs
 
 
-/obj/admins/proc/vmode()
+/datum/admins/proc/vmode()
 	set category = "Server"
 	set hidden = 1 // It doesn't have a cancel button, so it shouldn't be autocompleted. Should be started via Voting() instead
 	if (!usr.client.holder)
@@ -2994,14 +2900,14 @@ var/global/BSACooldown = 0
 				CM.client.vote = "default"
 	//feedback_add_details("admin_verb","SV") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/votekill()
+/datum/admins/proc/votekill()
 	set category = "Server"
 	set name = "Abort Vote"
 	set desc="Aborts a vote"
 	if(vote.voting == 0)
 		alert("No votes in progress")
 		return
-	world << "\red <b>*** Voting aborted by [usr.client.stealth ? "Admin Candidate" : usr.key].</b>"
+	world << "\red <b>*** Voting aborted by [usr.client.holder.mimic ? usr.client.fakekey : (usr.client.holder.stealth ? "Admin Candidate" : usr.key)].</b>"
 
 	log_admin("Voting aborted by [key_name(usr)]")
 
@@ -3015,7 +2921,7 @@ var/global/BSACooldown = 0
 			M.client.showvote = 0
 	//feedback_add_details("admin_verb","AV") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/voteres()
+/datum/admins/proc/voteres()
 	set category = "Server"
 	set name = "Toggle Voting"
 	set desc="Toggles Votes"
@@ -3038,7 +2944,7 @@ var/global/BSACooldown = 0
 			vote.nextvotetime = world.timeofday
 	//feedback_add_details("admin_verb","TV") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/restart()
+/datum/admins/proc/restart()
 	set category = "Server"
 	set name = "Restart"
 	set desc="Restarts the world"
@@ -3048,7 +2954,7 @@ var/global/BSACooldown = 0
 	if(confirm == "Cancel")
 		return
 	if(confirm == "Yes")
-		world << "\red <b>Restarting world!</b> \blue Initiated by [usr.client.stealth ? "Admin" : usr.key]!"
+		world << "\red <b>Restarting world!</b> \blue Initiated by [usr.client.holder.mimic ? usr.client.fakekey : (usr.client.holder.stealth ? "Admin" : usr.key)]!"
 		log_admin("[key_name(usr)] initiated a reboot.")
 
 		//feedback_set_details("end_error","admin reboot - by [usr.key] [usr.client.stealth ? "(stealth)" : ""]")
@@ -3060,19 +2966,19 @@ var/global/BSACooldown = 0
 		sleep(50)
 		world.Reboot()
 
-/obj/admins/proc/announce()
+/datum/admins/proc/announce()
 	set category = "Special Verbs"
 	set name = "Announce"
 	set desc="Announce your desires to the world"
 	var/message = input("Global message to send:", "Admin Announce", null, null)  as message
 	if (message)
-		if(usr.client.holder.rank != "Game Admin" && usr.client.holder.rank != "Game Master")
+		if(usr.client.holder.level >= 4)
 			message = adminscrub(message,500)
-		world << "\blue <b>[usr.client.stealth ? "Administrator" : usr.key] Announces:</b>\n \t [message]"
+		world << "\blue <b>[usr.client.holder.mimic ? usr.client.fakekey : (usr.client.holder.stealth ? "Administrator" : usr.key)] Announces:</b>\n \t [message]"
 		log_admin("Announce: [key_name(usr)] : [message]")
 	//feedback_add_details("admin_verb","A") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/toggleooc()
+/datum/admins/proc/toggleooc()
 	set category = "Server"
 	set desc="Toggle dis bitch"
 	set name="Toggle OOC"
@@ -3085,7 +2991,7 @@ var/global/BSACooldown = 0
 	message_admins("[key_name_admin(usr)] toggled OOC.", 1)
 	//feedback_add_details("admin_verb","TOOC") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/toggleoocdead()
+/datum/admins/proc/toggleoocdead()
 	set category = "Server"
 	set desc="Toggle dis bitch"
 	set name="Toggle Dead OOC"
@@ -3095,7 +3001,7 @@ var/global/BSACooldown = 0
 	message_admins("[key_name_admin(usr)] toggled Dead OOC.", 1)
 	//feedback_add_details("admin_verb","TDOOC") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/toggletraitorscaling()
+/datum/admins/proc/toggletraitorscaling()
 	set category = "Server"
 	set desc="Toggle traitor scaling"
 	set name="Toggle Traitor Scaling"
@@ -3104,7 +3010,7 @@ var/global/BSACooldown = 0
 	message_admins("[key_name_admin(usr)] toggled Traitor Scaling [traitor_scaling ? "on" : "off"].", 1)
 	//feedback_add_details("admin_verb","TTS") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/startnow()
+/datum/admins/proc/startnow()
 	set category = "Server"
 	set desc="Start the round RIGHT NOW"
 	set name="Start Now"
@@ -3121,7 +3027,7 @@ var/global/BSACooldown = 0
 		usr << "<font color='red'>Error: Start Now: Game has already started.</font>"
 		return 0
 
-/obj/admins/proc/toggleenter()
+/datum/admins/proc/toggleenter()
 	set category = "Server"
 	set desc="People can't enter"
 	set name="Toggle Entering"
@@ -3135,7 +3041,7 @@ var/global/BSACooldown = 0
 	world.update_status()
 	//feedback_add_details("admin_verb","TE") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/toggleAI()
+/datum/admins/proc/toggleAI()
 	set category = "Server"
 	set desc="People can't be AI"
 	set name="Toggle AI"
@@ -3148,7 +3054,7 @@ var/global/BSACooldown = 0
 	world.update_status()
 	//feedback_add_details("admin_verb","TAI") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/toggleaban()
+/datum/admins/proc/toggleaban()
 	set category = "Server"
 	set desc="Respawn basically"
 	set name="Toggle Respawn"
@@ -3162,7 +3068,7 @@ var/global/BSACooldown = 0
 	world.update_status()
 	//feedback_add_details("admin_verb","TR") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/toggle_aliens()
+/datum/admins/proc/toggle_aliens()
 	set category = "Server"
 	set desc="Toggle alien mobs"
 	set name="Toggle Aliens"
@@ -3171,7 +3077,7 @@ var/global/BSACooldown = 0
 	message_admins("[key_name_admin(usr)] toggled Aliens [aliens_allowed ? "on" : "off"].", 1)
 	//feedback_add_details("admin_verb","TA") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/toggle_space_ninja()
+/datum/admins/proc/toggle_space_ninja()
 	set category = "Server"
 	set desc="Toggle space ninjas spawning."
 	set name="Toggle Space Ninjas"
@@ -3180,7 +3086,7 @@ var/global/BSACooldown = 0
 	message_admins("[key_name_admin(usr)] toggled Space Ninjas [toggle_space_ninja ? "on" : "off"].", 1)
 	//feedback_add_details("admin_verb","TSN") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/delay()
+/datum/admins/proc/delay()
 	set category = "Server"
 	set desc="Delay the game start"
 	set name="Delay"
@@ -3201,7 +3107,7 @@ var/global/BSACooldown = 0
 		log_admin("[key_name(usr)] removed the delay.")
 	//feedback_add_details("admin_verb","DELAY") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/adjump()
+/datum/admins/proc/adjump()
 	set category = "Server"
 	set desc="Toggle admin jumping"
 	set name="Toggle Jump"
@@ -3209,7 +3115,7 @@ var/global/BSACooldown = 0
 	message_admins("\blue Toggled admin jumping to [config.allow_admin_jump].")
 	//feedback_add_details("admin_verb","TJ") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/adspawn()
+/datum/admins/proc/adspawn()
 	set category = "Server"
 	set desc="Toggle admin spawning"
 	set name="Toggle Spawn"
@@ -3217,7 +3123,7 @@ var/global/BSACooldown = 0
 	message_admins("\blue Toggled admin item spawning to [config.allow_admin_spawning].")
 	//feedback_add_details("admin_verb","TAS") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/adrev()
+/datum/admins/proc/adrev()
 	set category = "Server"
 	set desc="Toggle admin revives"
 	set name="Toggle Revive"
@@ -3225,13 +3131,13 @@ var/global/BSACooldown = 0
 	message_admins("\blue Toggled reviving to [config.allow_admin_rev].")
 	//feedback_add_details("admin_verb","TAR") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/immreboot()
+/datum/admins/proc/immreboot()
 	set category = "Server"
 	set desc="Reboots the server post haste"
 	set name="Immediate Reboot"
 	if( alert("Reboot server?",,"Yes","No") == "No")
 		return
-	world << "\red <b>Rebooting world!</b> \blue Initiated by [usr.client.stealth ? "Admin" : usr.key]!"
+	world << "\red <b>Rebooting world!</b> \blue Initiated by [usr.client.holder.mimic ? usr.client.fakekey : (usr.client.holder.stealth ? "Admin" : usr.key)]!"
 	log_admin("[key_name(usr)] initiated an immediate reboot.")
 
 	//feedback_set_details("end_error","immediate admin reboot - by [usr.key] [usr.client.stealth ? "(stealth)" : ""]")
@@ -3246,27 +3152,21 @@ var/global/BSACooldown = 0
 	set category = "Admin"
 	set desc="Toggles Deadchat Visibility"
 	set name="Deadchat Visibility"
-	if(deadchat == 0)
-		deadchat = 1
-		usr << "Deadchat turned on"
-	else
-		deadchat = 0
-		usr << "Deadchat turned off"
+	holder.deadchat = !holder.deadchat
+	usr << "Deadchat turned [holder.deadchat ? "on" : "off"]."
 	//feedback_add_details("admin_verb","TDV") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 /client/proc/toggleprayers()
 	set category = "Admin"
 	set desc="Toggles Prayer Visibility"
 	set name="Prayer Visibility"
-	if(seeprayers == 0)
-		seeprayers = 1
-		usr << "Prayer visibility turned on"
-	else
-		seeprayers = 0
-		usr << "Prayer visibility turned off"
+	if(!holder)
+		return
+	holder.seeprayers = !holder.seeprayers
+	usr << "Prayer visibility turned [holder.seeprayers ? "on" : "off"]."
 	//feedback_add_details("admin_verb","TP") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/obj/admins/proc/unprison(var/mob/M in world)
+/datum/admins/proc/unprison(var/mob/M in world)
 	set category = "Admin"
 	set name = "Unprison"
 	if (M.z == 2)
@@ -3280,6 +3180,8 @@ var/global/BSACooldown = 0
 		alert("[M.name] is not prisoned.")
 	//feedback_add_details("admin_verb","UP") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
+/datum/admins/proc/grant_admin_permanence()
+	//NOTHING TO SEE HERE
 ////////////////////////////////////////////////////////////////////////////////////////////////ADMIN HELPER PROCS
 
 /proc/is_special_character(mob/M as mob) // returns 1 for specail characters and 2 for heroes of gamemode
@@ -3327,7 +3229,7 @@ var/global/BSACooldown = 0
 	return 0
 
 /*
-/obj/admins/proc/get_sab_desc(var/target)
+/datum/admins/proc/get_sab_desc(var/target)
 	switch(target)
 		if(1)
 			return "Destroy at least 70% of the plasma canisters on the station"
@@ -3344,12 +3246,12 @@ var/global/BSACooldown = 0
 		else
 			return "Error: Invalid sabotage target: [target]"
 */
-/obj/admins/proc/spawn_atom(var/object as text)
+/datum/admins/proc/spawn_atom(var/object as text)
 	set category = "Debug"
 	set desc= "(atom path) Spawn an atom"
 	set name= "Spawn"
 
-	if(usr.client.holder.level >= 5)
+	if(usr.client.holder.level >= 4)
 		var/list/types = typesof(/atom)
 
 		var/list/matches = new()
@@ -3379,7 +3281,7 @@ var/global/BSACooldown = 0
 	//feedback_add_details("admin_verb","SA") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 
-/obj/admins/proc/show_traitor_panel(var/mob/M in world)
+/datum/admins/proc/show_traitor_panel(var/mob/M in world)
 	set category = "Admin"
 	set desc = "Edit mobs's memory and role"
 	set name = "Show Traitor Panel"
@@ -3391,7 +3293,7 @@ var/global/BSACooldown = 0
 	//feedback_add_details("admin_verb","STP") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 
-/obj/admins/proc/toggletintedweldhelmets()
+/datum/admins/proc/toggletintedweldhelmets()
 	set category = "Debug"
 	set desc="Reduces view range when wearing welding helmets"
 	set name="Toggle tinted welding helmes"
@@ -3403,22 +3305,6 @@ var/global/BSACooldown = 0
 	log_admin("[key_name(usr)] toggled tinted_weldhelh.")
 	message_admins("[key_name_admin(usr)] toggled tinted_weldhelh.", 1)
 	//feedback_add_details("admin_verb","TTWH") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
-
-/*
-/obj/admins/proc/toggleguests()
-	set category = "Server"
-	set desc="Guests can't enter"
-	set name="Toggle guests"
-	guests_allowed = !( guests_allowed )
-	if (!( guests_allowed ))
-		world << "<B>Guests may no longer enter the game.</B>"
-	else
-		world << "<B>Guests may now enter the game.</B>"
-	log_admin("[key_name(usr)] toggled guests game entering [guests_allowed?"":"dis"]allowed.")
-	message_admins("\blue [key_name_admin(usr)] toggled guests game entering [guests_allowed?"":"dis"]allowed.", 1)
-	//feedback_add_details("admin_verb","TGU") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
-*/
-
 
 /*/client/proc/unjobban_panel()
 	set name = "Unjobban Panel"

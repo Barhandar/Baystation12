@@ -120,9 +120,9 @@
 		if(!(item in K))
 			K += item
 	return K
-	
+
 // &#1103; - unicode ya, &#255; - ansi ya
-// html_encode will kill both "ya" and its html ampersand representation. BYOND reserves ASCII #255, and this behavior is WONTFIX. 
+// html_encode will kill both "ya" and its html ampersand representation. BYOND reserves ASCII #255, and this behavior is WONTFIX.
 // Most user popup inputs are unicode
 
 /proc/sanitize_simple(var/t,var/list/repl_chars = list("\n"="#","\t"="#","ÿ"="____255_"))
@@ -976,7 +976,7 @@ Turf and target are seperate in case you want to teleport some distance from a t
 				else
 					linked = 0
 
-		if (the_client && the_client.holder && the_client.stealth && !include_name)
+		if (the_client && the_client.holder && the_client.holder.stealth && !include_name)
 			text += "Administrator"
 		else
 			text += "[the_key]"

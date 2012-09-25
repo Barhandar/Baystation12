@@ -8,7 +8,7 @@
 	if(src.holder)
 		if(!src.mob)	return
 
-		if(src.holder.rank in list("Game Admin", "Game Master"))
+		if(src.holder.level >= 5)
 			var/newtick = input("Sets a new tick lag. Please don't mess with this too much! The stable, time-tested ticklag value is 0.9","Lag of Tick", world.tick_lag) as num|null
 			//I've used ticks of 2 before to help with serious singulo lags
 			if(newtick && newtick <= 2 && newtick > 0)
@@ -28,5 +28,5 @@
 			src << "\red Error: ticklag(): Invalid world.ticklag value. No changes made."
 			return
 
-		src << "\red Error: ticklag(): You are not authorised to use this. Game Admins and higher only."
+		src << "\red Error: ticklag(): You are not authorised to use this. Tyrants and higher only."
 		return

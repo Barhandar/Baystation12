@@ -259,7 +259,40 @@
 			M.show_message("\red You hear a roar as the crematorium activates.", 1)
 		cremating = 1
 		locked = 1
-		if(locate(/mob/living/, src))
+		if (locate(/obj/item/weapon/reagent_containers, src)) //PIROZHKI HERE
+			if(locate(/mob/living/carbon/human, src))
+				for(var/mob/living/carbon/human/H in src)
+					var/sourcename = H.real_name
+					var/sourcejob = H.job
+					var/sourcenutriment = H.nutrition / 15
+					var/sourcetotalreagents = H.reagents.total_volume
+					var/totalslabs = 8
+					for (var/i=1 to totalslabs)
+						var/obj/item/weapon/reagent_containers/food/snacks/sliceable/meat/human/newmeat = new()
+						newmeat.name = sourcename + newmeat.name
+						newmeat.subjectname = sourcename
+						newmeat.subjectjob = sourcejob
+						newmeat.reagents.add_reagent("nutriment", sourcenutriment / totalslabs) // Thehehe. Fat guys go first
+						H.reagents.trans_to(newmeat, round(sourcetotalreagents / totalslabs, 1)) // Transfer all the reagents from the
+						newmeat.loc = src
+			var/obj/machinery/microwave/M =  new/obj/machinery/microwave
+			var/datum/recipe/recipe = select_recipe(M.available_recipes,/obj/machinery/microwave)
+			del(M) //USED NOW, ARE YOU SATISFIED?
+			var/cooked
+			if(recipe)
+				if(prob(66))
+					cooked = fail()
+					cooked:loc = src
+				else
+					cooked = recipe.make_food(src)
+					if(cooked)
+						cooked:loc = src
+			if(locate(/obj/item/weapon/reagent_containers/food/snacks/sliceable/meat/human, src))
+				for(var/obj/item/weapon/reagent_containers/food/snacks/sliceable/meat/human/HM in src)
+					del(HM) //no free meat for you, man.
+					if(prob(5))
+						new /obj/effect/decal/ash(src)
+		else if(locate(/mob/living/, src))
 			for (var/obj/item/I in contents)
 				del(I)
 			for (var/mob/living/M in contents)
@@ -291,6 +324,22 @@
 				locked = 0
 				playsound(src.loc, 'ding.ogg', 50, 1)
 	return
+
+//Yeah, it's a copypasta from microwave.
+/obj/structure/crematorium/proc/fail()
+	var/obj/item/weapon/reagent_containers/food/snacks/badrecipe/ffuu = new(src)
+	var/amount = 0
+	for (var/obj/O in contents-ffuu)
+		amount++
+		if (O.reagents)
+			var/id = O.reagents.get_master_reagent_id()
+			if (id)
+				amount+=O.reagents.get_reagent_amount(id)
+		del(O)
+	src.reagents.clear_reagents()
+	ffuu.reagents.add_reagent("carbon", amount)
+	ffuu.reagents.add_reagent("toxin", amount/10)
+	return ffuu
 
 /obj/structure/c_tray/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
 	if (istype(mover, /obj/item/weapon/dummy))

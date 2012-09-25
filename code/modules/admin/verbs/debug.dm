@@ -4,19 +4,10 @@
 	if(!holder)
 		src << "Only administrators may use this command."
 		return
-	if(holder.rank == "Game Admin")
-		Debug2 = !Debug2
-
-		world << "Debugging [Debug2 ? "On" : "Off"]"
-		log_admin("[key_name(src)] toggled debugging to [Debug2]")
-	else if(holder.rank == "Game Master")
-		Debug2 = !Debug2
-
-		world << "Debugging [Debug2 ? "On" : "Off"]"
-		log_admin("[key_name(src)] toggled debugging to [Debug2]")
-	else
-		alert("Coders only baby")
-		return
+	Debug2 = !Debug2
+	world << "Debugging [Debug2 ? "On" : "Off"]"
+	log_admin("[key_name(src)] toggled debugging to [Debug2]")
+	//YOU DO NOT NEED CHECKS WHEN ONLY CODERS HAVE THIS STUFF ANYWAY
 //	feedback_add_details("admin_verb","DG2") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
 

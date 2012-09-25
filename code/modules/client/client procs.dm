@@ -77,7 +77,7 @@
 		return
 
 	if(IsGuestKey(key))
-		alert(src,"Baystation12 doesn't allow guest accounts to play. Please go to http://www.byond.com/ and register for a key.","Guest","OK")
+		alert(src,"We do not allow guest accounts to play. Please go to http://www.byond.com/ and register for a key.","Guest","OK")
 		del(src)
 		return
 
@@ -96,7 +96,7 @@
 
 	//Admin Authorisation
 	if( ckey in admins )
-		holder = new /obj/admins(src)
+		holder = new /datum/admins(src)
 		holder.rank = admins[ckey]
 		update_admins(admins[ckey])
 		admin_memo_show()

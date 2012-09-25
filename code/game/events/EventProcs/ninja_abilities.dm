@@ -95,7 +95,7 @@ Not sure why this would be useful (it's not) but whatever. Ninjas need their smo
 			spawn(0)
 				destination.kill_creatures(U)//Any living mobs in teleport area are gibbed. Check turf procs for how it does it.
 			s_coold = 1
-			cell.charge-=(C*10)
+			cell.use(C*10)
 		else
 			U << "\red The VOID-shift device is malfunctioning, <B>teleportation failed</B>."
 	return
@@ -129,7 +129,7 @@ Not sure why this would be useful (it's not) but whatever. Ninjas need their smo
 			spawn(0)//Any living mobs in teleport area are gibbed.
 				T.kill_creatures(U)
 			s_coold = 1
-			cell.charge-=(C*10)
+			cell.use(C*10)
 		else
 			U << "\red You cannot teleport into solid walls or from solid matter"
 	return
@@ -148,7 +148,7 @@ Not sure why this would be useful (it's not) but whatever. Ninjas need their smo
 		playsound(U.loc, 'EMPulse.ogg', 60, 2)
 		empulse(U, 4, 6) //Procs sure are nice. Slightly weaker than wizard's disable tch.
 		s_coold = 2
-		cell.charge-=(C*10)
+		cell.use(C*10)
 	return
 
 //=======//ENERGY BLADE//=======//
@@ -168,7 +168,7 @@ Not sure why this would be useful (it's not) but whatever. Ninjas need their smo
 				spark_system.start()
 				playsound(U.loc, "sparks", 50, 1)
 				U.put_in_hand(W)
-				cell.charge-=(C*10)
+				cell.use(C*10)
 			else
 				U << "\red You can only summon one blade. Try dropping an item first."
 		else//Else you can run around with TWO energy blades. I don't know why you'd want to but cool factor remains.
@@ -212,7 +212,7 @@ This could be a lot better but I'm too tired atm.*/
 			A.current = curloc
 			A.yo = targloc.y - curloc.y
 			A.xo = targloc.x - curloc.x
-			cell.charge-=(C*10)
+			cell.use(C*10)
 			A.fired()
 		else
 			U << "\red There are no targets in view."
@@ -249,7 +249,7 @@ Must right click on a mob to activate.*/
 				E.master = U
 				spawn(0)//Parallel processing.
 					E.process(M)
-				cell.charge-=(C*10)
+				cell.use(C*10)
 			else
 				U << "They are already trapped inside an energy net."
 		else
