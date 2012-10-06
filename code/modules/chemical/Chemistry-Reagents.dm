@@ -1060,9 +1060,9 @@ datum
 			color = "#A8A8A8" // rgb: 168, 168, 168
 
 		fuel
-			name = "Welding fuel"
+			name = "Promethium"
 			id = "fuel"
-			description = "Required for welders. Flamable."
+			description = "Imperium's main fuel for everything that can burn liquids."
 			reagent_state = LIQUID
 			color = "#660000" // rgb: 102, 0, 0
 
@@ -2725,6 +2725,7 @@ datum
 				holder.remove_reagent(src.id, 0.4)
 				..()
 				return
+
 
 /*			reaction_obj(var/obj/O, var/volume)
 				if(istype(O,/obj/item/weapon/paper))

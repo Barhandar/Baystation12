@@ -495,6 +495,11 @@ Traitors and the like can also be revived with the previous role mostly intact.
 	var/customname = input(usr, "Pick a title for the report.", "Title") as text|null
 	if(!input)
 		return
+
+	var/index = findtext(input, "ÿ")
+	while(index)
+		input = copytext(input, 1, index) + "ß" + copytext(input, index+1)
+		index = findtext(input, "ÿ")
 	input = sanitize(input)
 	if(!customname)
 		customname = "NanoTrasen Update"

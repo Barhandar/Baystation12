@@ -1,5 +1,66 @@
 var/list/sacrificed = list()
 
+
+/*
+
+/datum/magic/rune
+	var
+		incantation = ""
+		inscription = "" //inscription is actually runewords.
+		cost = null
+		holder = null //rune, sigil or talisman
+	proc
+		activate()
+
+/datum/magic/rune/teleport
+	incantation = "Sas'so c'arta forbici!"
+	inscription = "wordself, wordtravel"
+	activate(var/key)
+		var/mob/living/user = usr
+		var/mob/living/grabbed
+		if (istype(user.get_active_hand(), /obj/item/weapon/grab))
+			var/obj/item/weapon/grab/G = user.get_active_hand()
+			grabbed = G.affecting
+		else if (istype(user.get_inactive_hand(), /obj/item/weapon/grab))
+			var/obj/item/weapon/grab/G = user.get_inactive_hand()
+			grabbed = G.affecting
+		var/allrunesloc[]
+		allrunesloc = new/list()
+		var/index = 0
+		for(var/obj/effect/rune/R in world)
+			if(R == src)
+				continue
+			if(R.word1 == wordtravel && R.word2 == wordself && R.word3 == key && R.z != 2)
+				index++
+				allrunesloc.len = index
+				allrunesloc[index] = R.loc
+		if(index >= 5)
+			user << "\red You feel pain, as the rune disappears into a reality shift caused by too much wear on the fabric of space-time."
+			if (istype(user, /mob/living))
+				user.take_overall_damage(5, 0)
+			del(src)
+		if(allrunesloc && index != 0)
+			if(istype(src,/obj/effect/rune))
+				user.say("Sas'so c'arta forbici!")
+			else
+				user.whisper("Sas'so c'arta forbici!")
+			user.visible_message("\red [user] disappears in a flash of red light!", \
+			"\red You feel that your body gets dragged through the dimension of Nar-Sie!", \
+			"\red You hear a sickening crunch and sloshing of viscera.")
+			var/target = rand(1,index)
+			user.loc = allrunesloc[target]
+			if(grabbed)
+				grabbed.loc = allrunesloc[target]
+			return
+		if(istype(holder,/obj/effect/rune))
+			return	holder:fizzle()
+		else
+			call(/obj/effect/rune/proc/fizzle)()
+			return
+
+/datum/magic/rune/itemport
+	activate(var/key)
+*/
 /obj/effect/rune
 /////////////////////////////////////////FIRST RUNE
 	proc
@@ -15,7 +76,6 @@ var/list/sacrificed = list()
 			var/allrunesloc[]
 			allrunesloc = new/list()
 			var/index = 0
-		//	var/tempnum = 0
 			for(var/obj/effect/rune/R in world)
 				if(R == src)
 					continue
@@ -34,7 +94,7 @@ var/list/sacrificed = list()
 				else
 					user.whisper("Sas'so c'arta forbici!")
 				user.visible_message("\red [user] disappears in a flash of red light!", \
-				"\red You feel as your body gets dragged through the dimension of Nar-Sie!", \
+				"\red You feel that your body gets dragged through the dimension of Nar-Sie!", \
 				"\red You hear a sickening crunch and sloshing of viscera.")
 				var/target = rand(1,index)
 				user.loc = allrunesloc[target]
@@ -42,11 +102,10 @@ var/list/sacrificed = list()
 					grabbed.loc = allrunesloc[target]
 				return
 			if(istype(src,/obj/effect/rune))
-				return	fizzle() //Use friggin manuals, Dorf, your list was of zero length.
+				return	fizzle()
 			else
 				call(/obj/effect/rune/proc/fizzle)()
 				return
-
 
 		itemport(var/key)
 //			var/allrunesloc[]
@@ -958,7 +1017,7 @@ var/list/sacrificed = list()
 
 		runestun(var/mob/living/carbon/T as mob)
 			if(istype(src,/obj/effect/rune))   ///When invoked as rune, flash and stun everyone around.
-				usr.say("Fuu ma'jin!")
+				usr.say("Bu huru'st akelm!")
 				for(var/mob/living/carbon/C in viewers(src))
 					flick("e_flash", C.flash)
 					if (C.stuttering < 1 && (!(HULK in C.mutations)))
@@ -968,7 +1027,7 @@ var/list/sacrificed = list()
 					C.show_message("\red The rune explodes in a bright flash.", 3)
 				del(src)
 			else                        ///When invoked as talisman, stun and mute the target mob.
-				usr.say("Dream sign ''Evil sealing talisman''!")
+				usr.say("Bu huru'st akelm!")
 				var/obj/item/weapon/nullrod/N = locate() in T
 				if(N)
 					for(var/mob/O in viewers(T, null))

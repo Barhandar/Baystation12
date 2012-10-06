@@ -529,12 +529,15 @@ But you can call procs that are of type /mob/living/carbon/human/proc/ for that 
 		if(alert("This mob is being controlled by [M.ckey]. Are you sure you wish to assume control of it? [M.ckey] will be made a ghost.",,"Yes","No") != "Yes")
 			return
 		else
-			var/mob/dead/observer/ghost = new/mob/dead/observer()
-			ghost.ckey = M.ckey;
+			M.ghostize(1)
 	var/mob/adminmob = src.mob
-	M.ckey = src.ckey;
-	if( isobserver(adminmob) )
-		del(adminmob)
+	M.key = src.key
+	M.ckey = src.ckey
+	if(adminmob.mind)
+		adminmob.mind.transfer_to(M)
+	spawn(30) //this bullshit doesn't know how to assume
+		if( isobserver(adminmob) )
+			del(adminmob)
 	//feedback_add_details("admin_verb","ADC") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 	log_admin("[key_name(usr)] assumed direct control of [M].")
 	message_admins("\blue [key_name_admin(usr)] assumed direct control of [M].", 1)

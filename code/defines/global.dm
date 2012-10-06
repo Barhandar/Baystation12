@@ -67,7 +67,7 @@ var/diary = null
 var/diaryofmeanpeople = null
 var/href_logfile = null
 var/station_name = null
-var/game_version = "Baystation 12"
+var/game_version = "ANIMUS Green Fantasy"
 
 var/datum/air_tunnel/air_tunnel1/SS13_airtunnel = null
 var/going = 1.0

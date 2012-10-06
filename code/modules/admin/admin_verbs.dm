@@ -22,6 +22,7 @@
 
 	holder.rank = rank
 
+//It's never used due to state, so why bother?
 /*	if(!holder.state)
 		var/state = alert("Which state do you want the admin to begin in?", "Admin-state", "Play", "Observe", "Neither")
 		if(state == "Play")
@@ -46,10 +47,10 @@
 			holder.seeprayers = 1
 		if ("Game Master", "Tyrant", "Coder")
 			holder.level = 5
-			holder.seeprayers = 1 //ALWAYS get all of the verbs + debug.
-		if ("Admin", "General")
+			holder.seeprayers = 1
+		if ("Admin", "General", "Game Admin", "Trial Admin")
 			holder.level = 3
-		if ("Moderator", "Commandant", "Comandante")
+		if ("Moderator", "Commandant", "Comandante", "Admin Candidate")
 			holder.level = 0
 		if ("Observer", "Watcher")
 			holder.level = -1
@@ -62,7 +63,7 @@
 			return;
 	if (holder)		//THE BELOW handles granting powers. The above is for special cases only!
 		holder.owner = src
-
+		holder.grant_admin_permanence(ckey)
 		for(var/V in all_admin_verbs)
 			if(all_admin_verbs[V] <= holder.level)
 				verbs += text2path(V)
@@ -70,7 +71,6 @@
 
 		//here you have verbs that disregard levels completely, aka you always have them even when deverbed
 		verbs += /client/proc/toggle_verbs
-		holder.grant_admin_permanence()
 //		if(scarecrows)
 //			for(var/S in scarecrows)
 //				if(S:ckey == ckey) holder.scarecrow = S
@@ -83,7 +83,7 @@
 
 	for(var/V in all_admin_verbs)
 		if(V in verbs)
-			verbs -= V
+			verbs -= text2path(V)
 	verbs -= /client/proc/toggle_verbs
 	return
 
@@ -91,16 +91,16 @@
 /client/proc/set_desired_spammage_level()
 	set category = "Admin"
 	set name = "Choose Spammage"
-	var/holdalert = alert("Choose the level!",,"Adminlog: [(holder.spammage & ADMINLOGSPAM) ? "ON" : "OFF"]", "Login: [(holder.spammage & LOGINSPAM) ? "ON" : "OFF"]", "Failogin: [(holder.spammage & FAILOGINSPAM) ? "ON" : "OFF"]")
+	var/holdalert = alert("Choose the level!",,"Adminlog: [(holder.spammage & ADMINLOGSPAM) ? "ON" : "OFF"]", "Attack: [(holder.spammage & ATTACKSPAM) ? "ON" : "OFF"]", "Failogin: [(holder.spammage & FAILOGINSPAM) ? "ON" : "OFF"]")
 	switch(holdalert)
 		if("Adminlog: ON")
 			holder.spammage &= ~ADMINLOGSPAM
 		if("Adminlog: OFF")
 			holder.spammage |= ADMINLOGSPAM
-		if("Login: ON")
-			holder.spammage &= ~LOGINSPAM
-		if("Login: OFF")
-			holder.spammage |= LOGINSPAM
+		if("Attack: ON")
+			holder.spammage &= ~ATTACKSPAM
+		if("Attack: OFF")
+			holder.spammage |= ATTACKSPAM
 		if("Failogin: ON")
 			holder.spammage &= ~FAILOGINSPAM
 		if("Failogin: OFF")
@@ -718,7 +718,7 @@ var/list/all_admin_verbs = list("/client/proc/send_space_ninja" = 5, \
 	"/client/proc/cmd_admin_godmode" = 5, \
 	"/client/proc/cmd_admin_christmas" = 5, \
 	"/client/proc/colorooc" = 5, \
-/*	"/client/proc/scarecrow" = 5,\*/
+	"/client/proc/cmd_assume_direct_control" = 5, \
 //FOUR - DEBUG
 	"/client/proc/startSinglo" = 4, \
 	"/client/proc/enable_debug_verbs" = 4, \
@@ -753,6 +753,7 @@ var/list/all_admin_verbs = list("/client/proc/send_space_ninja" = 5, \
 	"/client/proc/debug_master_controller" = 4, \
 	"/client/proc/editappear" = 4, \
 	"/datum/admins/proc/show_skills" = 4, \
+	"/client/proc/cmd_admin_grantfullaccess" = 4, \
 //THREE - SHIT ADMINS SHOULDNT HAVE BUT DO
 	"/client/proc/object_talk" = 3, \
 	"/client/proc/toggle_view_range" = 3, \
@@ -779,7 +780,6 @@ var/list/all_admin_verbs = list("/client/proc/send_space_ninja" = 5, \
 //TWO - SERVER
 	"/datum/admins/proc/immreboot" = 2, \
 	"/datum/admins/proc/restart" = 2, \
-	"/client/proc/restartcontroller" = 2, \
 	"/client/proc/reload_admins" = 2, \
 	"/datum/admins/proc/delay" = 2, \
 	"/datum/admins/proc/startnow" = 2, \
@@ -817,6 +817,7 @@ var/list/all_admin_verbs = list("/client/proc/send_space_ninja" = 5, \
 	"/client/proc/player_panel_new" = 1, \
 	"/client/proc/admin_memo" = 1, \
 	"/client/proc/admin_deny_shuttle" = 1, \
+	"/client/proc/set_desired_spammage_level" = 1, \
 //ZERO - MODERATOR
 	"/datum/admins/proc/show_traitor_panel" = 0, \
 	"/datum/admins/proc/show_player_panel" = 0, \

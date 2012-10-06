@@ -2,7 +2,7 @@
 	if (station_name)
 		return station_name
 
-	var/name = "NSS Exodus"
+	var/name = "NSS Celeste"
 
 	station_name = name
 

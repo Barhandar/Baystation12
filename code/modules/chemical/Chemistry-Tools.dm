@@ -975,6 +975,9 @@
 
 	afterattack(obj/target, mob/user , flag)
 		if(!target.reagents) return
+		if(ishuman(target) && target:wear_suit && istype(target:wear_suit, /obj/item/clothing/suit/space))
+			user << "Can't inject through spacesuit."
+			return
 
 		switch(mode)
 			if(SYRINGE_DRAW)
@@ -1809,6 +1812,15 @@ var/list/grind_products = list()
 			user << "\red None of [src] left, oh no!"
 			del(src)
 			return 0
+		if(M == user)
+			if(istype(M.wear_mask, /obj/item/clothing/mask) && M.wear_mask.flags & MASKCOVERSMOUTH)
+				user << "\red You can't eat [src] through mask, remove it first."
+				return 0
+		else
+			if(istype(M.wear_mask, /obj/item/clothing/mask) && M.wear_mask.flags & MASKCOVERSMOUTH)
+				user << "\red You can't feed [M] with [src] through mask, remove it first."
+				return 0
+
 		if(istype(M, /mob/living/carbon))
 			if(M == user)								//If you're eating it yourself.
 				var/fullness = M.nutrition + (M.reagents.get_reagent_amount("nutriment") * 25)
@@ -2043,6 +2055,15 @@ var/list/grind_products = list()
 	attack(mob/M as mob, mob/user as mob, def_zone)
 		var/datum/reagents/R = src.reagents
 		var/fillevel = gulp_size
+
+		if(M == user)
+			if(istype(M.wear_mask, /obj/item/clothing/mask) && (M.wear_mask.flags & MASKCOVERSMOUTH))
+				user << "\red You can't drink [src] through mask, remove it first."
+				return 0
+		else
+			if(istype(M.wear_mask, /obj/item/clothing/mask) && (M.wear_mask.flags & MASKCOVERSMOUTH))
+				user << "\red You can't forced to drink [M] with [src] through mask, remove it first."
+				return 0
 
 		if(!R.total_volume || !R)
 			user << "\red None of [src] left, oh no!"

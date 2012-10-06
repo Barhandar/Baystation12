@@ -141,8 +141,10 @@
 
 /mob/living/carbon/metroid/bullet_act(var/obj/item/projectile/Proj)
 	attacked += 10
-	..(Proj)
+	if(!(istype(Proj, /obj/item/projectile)))
+		..(Proj)
 	return 0
+
 
 
 /mob/living/carbon/metroid/emp_act(severity)
@@ -168,7 +170,7 @@
 		if (2.0)
 
 			b_loss += 60
-			f_loss += 60
+			//f_loss += 60//FIRE loss. METROID. Yeah, computes nicely.
 
 
 		if(3.0)
@@ -215,7 +217,7 @@
 			M.show_message(text("\red [] has been hit by []", src, O), 1)
 	if (health > 0)
 		adjustBruteLoss((istype(O, /obj/effect/meteor/small) ? 10 : 25))
-		adjustFireLoss(30)
+		//adjustFireLoss(30)
 
 		updatehealth()
 	return

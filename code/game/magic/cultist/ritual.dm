@@ -2,7 +2,7 @@
 
 
 
-var/use_uristrunes = 1
+var/use_uristrunes = 0
 
 
 var/wordtravel = null
@@ -105,6 +105,16 @@ var/engwords = list("travel", "blood", "join", "hell", "destroy", "technology", 
 				var/image/blood = image('blood.dmi', loc = src, icon_state = "floor[rand(1,7)]")
 				blood.override = 1
 				AI.client.images += blood
+
+	CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
+		if(air_group || (height==0)) return !density
+
+		if(istype(mover, /obj/item/projectile))
+			return prob(10)
+		else if(iscultist(mover))
+			return 1
+		else
+			return !density
 
 	examine()
 		set src in view(2)

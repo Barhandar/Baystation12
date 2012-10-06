@@ -33,7 +33,7 @@ proc/makejson()
 	for(var/client/C)
 		playerscount++
 		if(C.holder && C.holder.level >= 0)		// make sure retired admins don't make nt think admins are on
-			if(!C.stealth)
+			if(!C.holder.stealth)
 				admins = "yes"
 				players += "[C.key];"
 			else

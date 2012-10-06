@@ -42,7 +42,7 @@
 
 	if( !C || !istype(C,/client) )
 		if(holder)		src << "<font color='red'>Error: Admin-PM: Client not found.</font>"
-		else			adminhelp(msg)	//admin we are replying to left. adminhelp instead
+		else			adminhelp(sanitize(msg))	//admin we are replying to left. adminhelp instead
 		return
 
 	//get message text, limit it's length.and clean/escape html
@@ -51,7 +51,7 @@
 		if(!msg)	return
 		if(!C)
 			if(holder)	src << "<font color='red'>Error: Admin-PM: Client not found.</font>"
-			else		adminhelp(msg)	//admin we are replying to has vanished, adminhelp instead
+			else		adminhelp(sanitize(msg))	//admin we are replying to has vanished, adminhelp instead
 			return
 
 	// sanitize it anyway

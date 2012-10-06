@@ -34,7 +34,7 @@
 	for (var/mob/M in world)
 		if (istype(M, /mob/new_player))
 			continue
-		if (M.stat == 2 || (M.client && M.client.holder && M.client.deadchat)) //admins can toggle deadchat on and off. This is a proc in admin.dm and is only give to Administrators and above
+		if (M.stat == 2 || (M.client && M.client.holder && M.client.holder.deadchat)) //admins can toggle deadchat on and off. This is a proc in admin.dm and is only give to Administrators and above
 			if(M.client && !M.client.STFU_ghosts) //Admin shut-off for ghosts chatter
 				M.show_message(rendered, 2)
 

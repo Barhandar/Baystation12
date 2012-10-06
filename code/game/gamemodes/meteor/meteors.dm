@@ -90,47 +90,42 @@
 	var/dest
 	pass_flags = PASSTABLE
 
+
+	Move()
+		..()
+		return
+
+	Bump(atom/A)
+		spawn(0)
+			for(var/mob/M in range(10, src))
+				if(!M.stat && !istype(M, /mob/living/silicon/ai)) //bad idea to shake an ai's view
+					shake_camera(M, 3, 1)
+			if (A)
+				A.meteorhit(src)
+				playsound(src.loc, 'meteorimpact.ogg', 40, 1)
+			if (--src.hits <= 0)
+				if(prob(15))// && !istype(A, /obj/structure/grille))
+					explosion(src.loc, 2, 3, 4, 10, 0)
+					playsound(src.loc, "explosion", 50, 1)
+				del(src)
+		return
+
+
+	ex_act(severity)
+		if (severity < 4)
+			del(src)
+		return
+
+	attackby(obj/item/weapon/W as obj, mob/user as mob)
+		if(istype(W, /obj/item/weapon/pickaxe))
+			del(src)
+			return
+		..()
+
 /obj/effect/meteor/small
 	name = "small meteor"
 	icon_state = "smallf"
 	pass_flags = PASSTABLE | PASSGRILLE
-
-/obj/effect/meteor/Move()
-//	var/turf/T = src.loc
-	//FUCK YOU. FUCK YOU ALL, METEORS. ~Hawk.
-	/*if (istype(T, /turf))
-		T.hotspot_expose(METEOR_TEMPERATURE, 1000) */
-	..()
-	return
-
-/obj/effect/meteor/Bump(atom/A)
-	spawn(0)
-		for(var/mob/M in range(10, src))
-			if(!M.stat && !istype(M, /mob/living/silicon/ai)) //bad idea to shake an ai's view
-				shake_camera(M, 3, 1)
-		if (A)
-			A.meteorhit(src)
-			playsound(src.loc, 'meteorimpact.ogg', 40, 1)
-		if (--src.hits <= 0)
-			if(prob(15))// && !istype(A, /obj/structure/grille))
-				explosion(src.loc, 4, 5, 6, 7, 0)
-				playsound(src.loc, "explosion", 50, 1)
-			del(src)
-	return
-
-
-/obj/effect/meteor/ex_act(severity)
-
-	if (severity < 4)
-		del(src)
-	return
-
-/obj/effect/meteor/big
-	name = "big meteor"
-	hits = 5
-
-	ex_act(severity)
-		return
 
 	Bump(atom/A)
 		spawn(0)
@@ -147,8 +142,27 @@
 				del(src)
 		return
 
-/obj/effect/meteor/attackby(obj/item/weapon/W as obj, mob/user as mob)
-	if(istype(W, /obj/item/weapon/pickaxe))
-		del(src)
+/obj/effect/meteor/big
+	name = "big meteor"
+	hits = 5
+
+	ex_act(severity)
 		return
-	..()
+
+	Bump(atom/A)
+		spawn(0)
+			for(var/mob/M in range(10, src))
+				if(!M.stat && !istype(M, /mob/living/silicon/ai)) //bad idea to shake an ai's view
+					shake_camera(M, 3, 1)
+			if (A)
+				explosion(src.loc, 0, 2, 3, 4, 0)
+				playsound(src.loc, 'meteorimpact.ogg', 40, 1)
+			if (--src.hits <= 0)
+				if(prob(15) && !istype(A, /obj/structure/grille))
+					explosion(src.loc, 4, 5, 6, 10, 0)
+					playsound(src.loc, "explosion", 50, 1)
+				del(src)
+		return
+
+
+

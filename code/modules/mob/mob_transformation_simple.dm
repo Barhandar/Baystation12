@@ -43,6 +43,7 @@
 
 	M.dna = src.dna
 
+	M.key = src.key
 	M.ckey = src.ckey
 	if(mind)
 		mind.transfer_to(M)

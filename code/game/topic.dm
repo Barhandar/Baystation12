@@ -18,7 +18,7 @@
 
 			n++
 			if(C.holder && C.holder.level >= 0) //not retired admin
-				if(!C.stealth) //stealthmins dont count as admins
+				if(!C.holder.stealth) //stealthmins dont count as admins
 					s["admins"] = 1
 					s["player[n]"] = "[C.key]"
 				else

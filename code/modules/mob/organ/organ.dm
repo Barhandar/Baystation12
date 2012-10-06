@@ -638,11 +638,12 @@
 
 			switch(type)
 				if(CUT)
-					src.status |= ORGAN_BLEEDING
-					var/list/size_names = list(/datum/wound/cut, /datum/wound/deep_cut, /datum/wound/flesh_wound, /datum/wound/gaping_wound, /datum/wound/big_gaping_wound, /datum/wound/massive_wound)
-					wound_type = size_names[size]
-					W = new wound_type(damage)
-					//message_admins("DEBUG: Wound type CUT: [type]")
+					if(damage > 3 && prob(50))
+						src.status |= ORGAN_BLEEDING
+						var/list/size_names = list(/datum/wound/cut, /datum/wound/deep_cut, /datum/wound/flesh_wound, /datum/wound/gaping_wound, /datum/wound/big_gaping_wound, /datum/wound/massive_wound)
+						wound_type = size_names[size]
+						W = new wound_type(damage)
+						//message_admins("DEBUG: Wound type CUT: [type]")
 				if(BRUISE)
 					var/list/size_names = list(/datum/wound/bruise/tiny_bruise, /datum/wound/bruise/small_bruise, /datum/wound/bruise/moderate_bruise, /datum/wound/bruise/large_bruise, /datum/wound/bruise/huge_bruise, /datum/wound/bruise/monumental_bruise)
 					wound_type = size_names[size]

@@ -144,6 +144,8 @@
 
 /obj/item/clothing/mask/gas/voice/space_ninja
 	name = "ninja mask"
+	flags = FPRINT|TABLEPASS|SUITSPACE|MASKCOVERSEYES
+
 	desc = "A close-fitting mask that acts both as an air filter and a post-modern fashion statement."
 	icon_state = "s-ninja"
 	item_state = "s-ninja_mask"
@@ -151,30 +153,35 @@
 
 /obj/item/clothing/mask/gas/clown_hat
 	name = "clown wig and mask"
+	flags = FPRINT|TABLEPASS|SUITSPACE|MASKCOVERSEYES
 	desc = "A true prankster's facial attire. A clown is incomplete without his wig and mask."
 	icon_state = "clown"
 	item_state = "clown_hat"
 
 /obj/item/clothing/mask/gas/sexyclown
 	name = "sexy-clown wig and mask"
+	flags = FPRINT|TABLEPASS|SUITSPACE|MASKCOVERSEYES
 	desc = "A feminine clown mask for the dabbling crossdressers or female entertainers."
 	icon_state = "sexyclown"
 	item_state = "sexyclown"
 
 /obj/item/clothing/mask/gas/mime
 	name = "mime mask"
+	flags = FPRINT|TABLEPASS|SUITSPACE|MASKCOVERSEYES
 	desc = "The traditional mime's mask. It has an eerie facial posture."
 	icon_state = "mime"
 	item_state = "mime"
 
 /obj/item/clothing/mask/gas/monkeymask
 	name = "monkey mask"
+	flags = FPRINT|TABLEPASS|SUITSPACE|MASKCOVERSEYES
 	desc = "A mask used when acting as a monkey."
 	icon_state = "monkeymask"
 	item_state = "monkeymask"
 
 /obj/item/clothing/mask/gas/sexymime
 	name = "sexy mime mask"
+	flags = FPRINT|TABLEPASS|SUITSPACE|MASKCOVERSEYES
 	desc = "A traditional female mime's mask."
 	icon_state = "sexymime"
 	item_state = "sexymime"

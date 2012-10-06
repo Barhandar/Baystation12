@@ -746,7 +746,7 @@ Turf and target are seperate in case you want to teleport some distance from a t
 		M.name = newname
 		M.original_name = newname
 
-/*/proc/clname(var/mob/M as mob) //--All praise goes to NEO|Phyte, all blame goes to DH, and it was Cindi-Kate's idea
+/proc/clname(var/mob/M as mob) //--All praise goes to NEO|Phyte, all blame goes to DH, and it was Cindi-Kate's idea
 	var/randomname = pick(clown_names)
 	var/newname = copytext(sanitize(input(M,"You are the clown. Would you like to change your name to something else?", "Name change",randomname)),1,MAX_NAME_LEN)
 	var/oldname = M.real_name
@@ -784,7 +784,7 @@ Turf and target are seperate in case you want to teleport some distance from a t
 		if(id.registered_name == oldname)
 			id.registered_name = newname
 			id.name = "[id.registered_name]'s ID Card ([id.assignment])"
-			break*/
+			break
 
 /proc/ionnum()
 	return "[pick("!","@","#","$","%","^","&","*")][pick(pick("!","@","#","$","%","^","&","*"))][pick(pick("!","@","#","$","%","^","&","*"))][pick(pick("!","@","#","$","%","^","&","*"))]"
@@ -1863,3 +1863,42 @@ proc/get_mob_with_client_list()
 			return EAST
 		if(NORTHWEST)
 			return SOUTHEAST
+
+//BARHMARK
+//PLAHCEHOLDER BECAUSE MORFEI IS A FUCKING IDIOT
+proc/get_opposite(var/checkdir)
+	switch(checkdir)
+		if(NORTH)
+			return SOUTH
+		if(SOUTH)
+			return NORTH
+		if(EAST)
+			return WEST
+		if(WEST)
+			return EAST
+		if(NORTHEAST)
+			return SOUTHWEST
+		if(NORTHWEST)
+			return SOUTHEAST
+		if(SOUTHEAST)
+			return NORTHWEST
+		if(SOUTHWEST)
+			return NORTHEAST
+
+proc/isemptylist(list/list)
+	if(!list.len)
+		return 1
+	return 0
+
+proc/clearlist(list/list)
+	if(istype(list))
+		list.len = 0
+	return
+proc/listclearnulls(list/list)
+	if(istype(list))
+		while(null in list)
+			list -= null
+	return
+
+/proc/sanitize_ya(var/t,var/list/repl_chars = null)
+	return sanitize_simple(t,repl_chars)
